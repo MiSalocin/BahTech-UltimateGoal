@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
-public class MovementTO {
+public class MMMovementAU {
 
     // Variáveis usadas na garra e no tiro
     private int    x = 0;
@@ -36,47 +36,50 @@ public class MovementTO {
         frontRight.setDirection(DcMotor.Direction.REVERSE);
         backRight.setDirection(DcMotor.Direction.REVERSE);
 
-        // Motores usados na garra
+        // Motors that wil be used in the
         arm = local.dcMotor.get("arm_motor");
         hand = local.servo.get("hand_servo");
         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        // Motores usados no tiro
+        // Motors that will be used in the shooter
         DcMotor intake = local.dcMotor.get("intake_motor");
         shooter = local.dcMotor.get("shooter_motor");
         shooT = local.servo.get("shooter_trig_servo");
 
-        // Motores que permanecerão ligados
+        // Motors that will be on all the time
         intake.setPower(1);
     }
 
-    void moveRobo (double leftX, double leftY, double rightX, boolean slower, boolean faster){
+    void moveF (double leftX, double leftY, double rightX, int time) throws InterruptedException {
 
         //  Se o bumper da esquerda for pressionado, o robô se mexerá em velocidade baixa
+        frontRight.setPower( + leftY + leftX - rightX );
+        backRight .setPower( + leftY - leftX - rightX );
+        frontLeft .setPower( + leftY - leftX + rightX );
+        backLeft  .setPower( + leftY + leftX + rightX );
 
-        if (slower) {
-            frontRight.setPower((+leftY + leftX - rightX) / 4);
-            backRight .setPower((+leftY - leftX - rightX) / 4);
-            frontLeft .setPower((+leftY - leftX + rightX) / 4);
-            backLeft  .setPower((+leftY + leftX + rightX) / 4);
-        }
+        wait(time);
+    }
+    void moveS (double leftX, double leftY, double rightX, int time) throws InterruptedException {
 
-        // Se o bumper da direita for pressionado, o robô se mexerá em velocidade alta
-        else if (faster) {
-            frontRight.setPower( + leftY + leftX - rightX );
-            backRight .setPower( + leftY - leftX - rightX );
-            frontLeft .setPower( + leftY - leftX + rightX );
-            backLeft  .setPower( + leftY + leftX + rightX );
-        }
+        //  Se o bumper da esquerda for pressionado, o robô se mexerá em velocidade baixa
+        frontRight.setPower(( + leftY + leftX - rightX )/4);
+        backRight .setPower(( + leftY - leftX - rightX )/4);
+        frontLeft .setPower(( + leftY - leftX + rightX )/4);
+        backLeft  .setPower(( + leftY + leftX + rightX )/4);
 
-        // Se nenhum dos botões forem pressionados, o robô se mexerá em velocidade média
-        else {
-            frontRight.setPower(( + leftY + leftX - rightX ) / 2);
-            backRight .setPower(( + leftY - leftX - rightX ) / 2);
-            frontLeft .setPower(( + leftY - leftX + rightX ) / 2);
-            backLeft  .setPower(( + leftY + leftX + rightX ) / 2);
-        }
+        wait(time);
+    }
+    void moveN (double leftX, double leftY, double rightX, int time) throws InterruptedException {
+
+        //  Se o bumper da esquerda for pressionado, o robô se mexerá em velocidade baixa
+        frontRight.setPower(( + leftY + leftX - rightX )/2);
+        backRight .setPower(( + leftY - leftX - rightX )/2);
+        frontLeft .setPower(( + leftY - leftX + rightX )/2);
+        backLeft  .setPower(( + leftY + leftX + rightX )/2);
+
+        wait(time);
     }
 
     void moveGarra(boolean up, boolean down, boolean openHand, boolean closeHand){

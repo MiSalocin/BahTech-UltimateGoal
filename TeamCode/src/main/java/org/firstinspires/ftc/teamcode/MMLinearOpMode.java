@@ -11,8 +11,9 @@ public class MMLinearOpMode extends LinearOpMode {
     public void runOpMode() {
         telemetry.addData("Aperte START para começar", "");
         double x = 1;
-        final MovementTO move = new MovementTO();
-        move.defHardware(hardwareMap);
+        final MMMovementTO moveT = new MMMovementTO();
+        final MMMovementAU moveA = new MMMovementAU();
+        moveA.defHardware(hardwareMap);
         telemetry.update();
 
         // Código que será executado quando apertarmos START.
@@ -45,9 +46,9 @@ public class MMLinearOpMode extends LinearOpMode {
             boolean dpLeft = gamepad1.dpad_left;
             boolean dpRight = gamepad1.dpad_right;
 
-            move.moveRobo(leftX, leftY, rightX, lb, rb);
-            move.moveGarra(dpUp, dpDown, dpLeft, dpRight);
-            move.tiro(gamepad1.a, x);
+            moveT.moveRobot(leftX, leftY, rightX, lb, rb);
+            moveT.moveGarra(dpUp, dpDown, dpLeft, dpRight);
+            moveT.tiro(gamepad1.a, x);
         }
     }
 }

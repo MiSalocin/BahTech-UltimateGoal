@@ -9,12 +9,13 @@ import static java.lang.Thread.sleep;
 public class MMOpMode extends OpMode {
 
     double x = 1;
-    final MovementTO move = new MovementTO();
+    final MMMovementTO moveT = new MMMovementTO();
+    final MMMovementAU moveA = new MMMovementAU();
 
     @Override
     public void init() {
         telemetry.addData("Aperte START para começar", "");
-        move.defHardware(hardwareMap);
+        moveA.defHardware(hardwareMap);
     }
 
     // Código que será executado após apertarmos START.
@@ -44,8 +45,8 @@ public class MMOpMode extends OpMode {
         boolean dpLeft = gamepad1.dpad_left;
         boolean dpRight = gamepad1.dpad_right;
 
-        move.moveRobo(leftX, leftY, rightX, lb, rb);
-        move.moveGarra(dpUp, dpDown, dpLeft, dpRight);
-        move.tiro(gamepad1.a, x);
+        moveT.moveRobot(leftX, leftY, rightX, lb, rb);
+        moveT.moveGarra(dpUp, dpDown, dpLeft, dpRight);
+        moveT.tiro(gamepad1.a, x);
     }
 }
