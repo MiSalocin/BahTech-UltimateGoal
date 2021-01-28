@@ -14,7 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.*;
  * Example OpMode. Demonstrates use of gyro, color sensor, encoders, and telemetry.
  *
  */
-@TeleOp(name = "ultimate bot demo", group = "ultimate bot")
+@TeleOp(name = "ultimate bot demo", group = "NormalGroup")
 public class UltimateBotDemo extends LinearOpMode {
 
     DcMotor m1, m2, m3, m4;

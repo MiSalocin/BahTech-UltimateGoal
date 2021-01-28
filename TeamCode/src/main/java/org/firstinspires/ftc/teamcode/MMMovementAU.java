@@ -3,113 +3,113 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 public class MMMovementAU {
 
-    // Variáveis usadas na garra e no tiro
+    // Variables used in the shooter and the claw
     private int    x = 0;
-    private double y = 1;
+    private double y = 0.8;
 
-    // Motores para movimento
+    // Motors that will be used in the movement
     public DcMotor frontRight;
     public DcMotor frontLeft;
     public DcMotor backRight;
     public DcMotor backLeft;
 
-    // Motores usados na garra
-    private DcMotor arm;
-    private Servo hand;
+    /** Defining motor for claw and shooter
+     // Motors that will be used in the claw
+     private DcMotor arm;
+     private Servo hand;
 
-    //Motores usados no tiro
-    private DcMotor shooter;
-    private Servo shooT;
+     // Motors that will be used in the shooter
+     private DcMotor shooter;
+     private Servo shooT;
+     */
 
     void defHardware (HardwareMap local) {
 
-        // Motores usados no movimento
+        // Motors used in the movement
         frontLeft = local.dcMotor.get("front_left_motor");
         frontRight = local.dcMotor.get("front_right_motor");
         backLeft = local.dcMotor.get("back_left_motor");
         backRight = local.dcMotor.get("back_right_motor");
 
-        // Reverte motores da direita para melhor controle
+        // Reverse right motors to make programming easier
         frontRight.setDirection(DcMotor.Direction.REVERSE);
         backRight.setDirection(DcMotor.Direction.REVERSE);
 
-        // Motors that wil be used in the
-        arm = local.dcMotor.get("arm_motor");
-        hand = local.servo.get("hand_servo");
-        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        /*Specify the claw and shooter motors
+         // Motors that wil be used in the claw
+         arm = local.dcMotor.get("arm_motor");
+         hand = local.servo.get("hand_servo");
+         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+         arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        // Motors that will be used in the shooter
-        DcMotor intake = local.dcMotor.get("intake_motor");
-        shooter = local.dcMotor.get("shooter_motor");
-        shooT = local.servo.get("shooter_trig_servo");
+         // Motors that will be used in the shooter
+         DcMotor intake = local.dcMotor.get("intake_motor");
+         shooter = local.dcMotor.get("shooter_motor");
+         shooT = local.servo.get("shooter_trig_servo");
 
         // Motors that will be on all the time
         intake.setPower(1);
+         */
     }
 
-    void moveF (double leftX, double leftY, double rightX, int time) throws InterruptedException {
+    void moveF (double front, double side, double turn){
 
-        //  Se o bumper da esquerda for pressionado, o robô se mexerá em velocidade baixa
-        frontRight.setPower( + leftY + leftX - rightX );
-        backRight .setPower( + leftY - leftX - rightX );
-        frontLeft .setPower( + leftY - leftX + rightX );
-        backLeft  .setPower( + leftY + leftX + rightX );
+        // Move robot in full speed
+        frontRight.setPower( + front + side - turn );
+        backRight .setPower( + front - side - turn );
+        frontLeft .setPower( + front - side + turn );
+        backLeft  .setPower( + front + side + turn );
 
-        wait(time);
     }
-    void moveS (double leftX, double leftY, double rightX, int time) throws InterruptedException {
+    void moveS (double front, double side, double turn){
 
-        //  Se o bumper da esquerda for pressionado, o robô se mexerá em velocidade baixa
-        frontRight.setPower(( + leftY + leftX - rightX )/4);
-        backRight .setPower(( + leftY - leftX - rightX )/4);
-        frontLeft .setPower(( + leftY - leftX + rightX )/4);
-        backLeft  .setPower(( + leftY + leftX + rightX )/4);
+        // Move robot in a quart of speed
+        frontRight.setPower(( + front + side - turn )/4);
+        backRight .setPower(( + front - side - turn )/4);
+        frontLeft .setPower(( + front - side + turn )/4);
+        backLeft  .setPower(( + front + side + turn )/4);
 
-        wait(time);
     }
-    void moveN (double leftX, double leftY, double rightX, int time) throws InterruptedException {
+    void moveN (double front, double side, double turn){
 
-        //  Se o bumper da esquerda for pressionado, o robô se mexerá em velocidade baixa
-        frontRight.setPower(( + leftY + leftX - rightX )/2);
-        backRight .setPower(( + leftY - leftX - rightX )/2);
-        frontLeft .setPower(( + leftY - leftX + rightX )/2);
-        backLeft  .setPower(( + leftY + leftX + rightX )/2);
+        // Move robot in a half of speed
+        frontRight.setPower(( + front + side - turn )/2);
+        backRight .setPower(( + front - side - turn )/2);
+        frontLeft .setPower(( + front - side + turn )/2);
+        backLeft  .setPower(( + front + side + turn )/2);
 
-        wait(time);
     }
 
-    void moveGarra(boolean up, boolean down, boolean openHand, boolean closeHand){
+    /** Program used in the shot and claw
+    void moveClaw(String Vertical, boolean openHand, boolean closeHand){
 
-        // Levanta ou abaixa a garra
-        if (up   && -1   >= arm.getCurrentPosition()) {
-            arm.setTargetPosition(x+=5);
+        // move up or down the claw
+        if (Vertical.equals("up") || Vertical.equals("Up")) {
+            arm.setTargetPosition(x = -1);
             arm.setPower(1);
-        }else if (down && -653 <= arm.getCurrentPosition()) {
-            arm.setTargetPosition(x-=5);
+        }else if (Vertical.equals("down") || Vertical.equals("Down")) {
+            arm.setTargetPosition(x = -653);
             arm.setPower(1);
         }else arm.setPower(0);
 
-        // Abre ou fecha a "mão" do robô
+        // Open or close the robot's "hand"
         if (openHand  && y < 1) hand.setPosition(y += 0.05);
         if (closeHand && y > 0) hand.setPosition(y -= 0.05);
 
     }
 
-    void tiro(boolean trigger, double force){
+    void shot(double force){
 
         shooter.setPower(force);
-        if (trigger) shooT.setPosition(1);
-        else   shooT.setPosition(0);
+        shooT.setPosition(1);
+        shooT.setPosition(0);
 
     }
-
-    public int getX() {
-        return x;
-    }
+     */
 
     public double getY() {
         return y;

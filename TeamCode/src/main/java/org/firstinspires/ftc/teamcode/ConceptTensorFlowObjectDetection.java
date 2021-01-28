@@ -29,7 +29,6 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -37,7 +36,6 @@ import java.util.List;
 import java.util.Locale;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
@@ -53,8 +51,8 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
  * IMPORTANT: In order to use this OpMode, you need to obtain your own Vuforia license key as
  * is explained below.
  */
-@Autonomous(name = "Ring stack detector", group = "Testes")
-//@Disabled
+@TeleOp(name = "Concept: TensorFlow Object Detection", group = "Concept")
+@Disabled
 public class ConceptTensorFlowObjectDetection extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
     private static final String LABEL_FIRST_ELEMENT = "Quad";
@@ -73,7 +71,7 @@ public class ConceptTensorFlowObjectDetection extends LinearOpMode {
      * and paste it in to your code on the next line, between the double quotes.
      */
     private static final String VUFORIA_KEY =
-            "Ad0n+XX/////AAABmQ/41s5hKkoQl9XvVGzFatosnvXWi3lcaK406bSM6BCiUoPYCNo83nOVmmi0PcL1v6+gDcdnZddtNmRaYSKGqMhsoHzczhJbbzJa6vsQPZ6Bzzs/9icQySfGBy4wUXNFBysun4H4G2qQEeaWP/PwNu7FkREo28S5DXYbk5G1SToOk/6MiOG4v8zuy1WvA2Mrg2gbJMlj181zI7Wj+CYJXDUpE2ugflgq9iDDzBCJGb0r1/sEwkqpBq/u3G8F2iPK5kRxLSsz2yB8AjpiLZlQJoZ9NpIwkEyuS9i6AVc9lnPTMst+gortmeJ+ThBBhscsJ55tdDf8yLn11cQgJSyrWBr9+9HIyvRc3ixR/og6y/Mc";
+            " -- YOUR NEW VUFORIA KEY GOES HERE  --- ";
 
     /**
      * #vuforia is the variable we will use to store our instance of the Vuforia
@@ -94,64 +92,44 @@ public class ConceptTensorFlowObjectDetection extends LinearOpMode {
         initVuforia();
         initTfod();
 
-
+         //Activate TensorFlow Object Detection before we wait for the start command.
+         //Do it here so that the Camera Stream window will have the TensorFlow annotations visible.
         if (tfod != null) {
             tfod.activate();
+
+            // The TensorFlow software will scale the input images from the camera to a lower resolution.
+            // This can result in lower detection accuracy at longer distances (> 55cm or 22").
+            // If your target is at distance greater than 50 cm (20") you can adjust the magnification value
+            // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
+            // should be set to the value of the images used to create the TensorFlow Object Detection model
+            // (typically 16/9).
+            tfod.setZoom(2.5, 16.0/9.0);
         }
 
-        /* Wait for the game to begin */
+        // Wait for the game to begin
         telemetry.addData(">", "Press Play to start op mode");
         telemetry.update();
         waitForStart();
 
         if (opModeIsActive()) {
             while (opModeIsActive()) {
-
-                int zona = 0;
-
                 if (tfod != null) {
                     // getUpdatedRecognitions() will return null if no new information is available since
                     // the last time that call was made.
                     List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
                     if (updatedRecognitions != null) {
-                      telemetry.addData("# Object Detected", updatedRecognitions.size());
-                        if ( updatedRecognitions.size() == 0 ) {
-                            // empty list -- no objects recognized.
+                        telemetry.addData("# Object Detected", updatedRecognitions.size());
 
-                            telemetry.addData("TFOD", "No items detected.");
-                            telemetry.addData("Target Zone", "A");
-
-                            // Se a variável zona for = 0 ele se move ate a zona A
-
-
-                        } else {
-                            //List is not empty.
-                            // step through the list of recognitions and display boundary info.
-                      int i = 0;
-                      for (Recognition recognition : updatedRecognitions) {
-                        telemetry.addData(String.format(Locale.US,"label (%d)", i), recognition.getLabel());
-                        telemetry.addData(String.format(Locale.US,"  left,top (%d)", i), "%.03f , %.03f",
-                                          recognition.getLeft(), recognition.getTop());
-                        telemetry.addData(String.format(Locale.US,"  right,bottom (%d)", i), "%.03f , %.03f",
-                                recognition.getRight(), recognition.getBottom());
-
-                        // check label to see which target zone to go after.
-                          if (recognition.getLabel().equals("Single")) {
-                            telemetry.addData("Target Zone", "B");
-
-                            zona = 1;
-
-                          } else if (recognition.getLabel().equals("Quad"))  {
-                              telemetry.addData("Target Zone", "C");
-
-                              zona = 2;
-
-                          } else {
-                              telemetry.addData("Target Zone", "UNKNOWN");
-                           }
+                        // step through the list of recognitions and display boundary info.
+                        int i = 0;
+                        for (Recognition recognition : updatedRecognitions) {
+                            telemetry.addData(String.format(Locale.US,"label (%d)", i), recognition.getLabel());
+                            telemetry.addData(String.format(Locale.US,"  left,top (%d)", i), "%.03f , %.03f",
+                                    recognition.getLeft(), recognition.getTop());
+                            telemetry.addData(String.format(Locale.US,"  right,bottom (%d)", i), "%.03f , %.03f",
+                                    recognition.getRight(), recognition.getBottom());
                         }
-                      }
-                      telemetry.update();
+                        telemetry.update();
                     }
                 }
             }
