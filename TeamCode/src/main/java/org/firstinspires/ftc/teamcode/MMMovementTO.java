@@ -11,10 +11,10 @@ public class MMMovementTO {
     private double y = 0.8;
 
     // Motors that will be used in the movement
-    public DcMotor frontRight;
-    public DcMotor frontLeft;
-    public DcMotor backRight;
-    public DcMotor backLeft;
+    private DcMotor frontRight;
+    private DcMotor frontLeft;
+    private DcMotor backRight;
+    private DcMotor backLeft;
 
     /** Defining motor for claw and shooter
     // Motors that will be used in the claw
@@ -46,12 +46,8 @@ public class MMMovementTO {
          arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
          // Motors that will be used in the shooter
-         DcMotor intake = local.dcMotor.get("intake_motor");
          shooter = local.dcMotor.get("shooter_motor");
          shooT = local.servo.get("shooter_trig_servo");
-
-         // Motors that will be on all the time
-         intake.setPower(1);
          */
     }
 

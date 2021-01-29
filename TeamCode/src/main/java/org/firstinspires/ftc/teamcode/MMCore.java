@@ -19,7 +19,6 @@ public class MMCore extends LinearOpMode {
     public void runOpMode() {
         // Create the Hardware Map in both our classes
         moveAuto.defHardware(hardwareMap);
-        moveTele.defHardware(hardwareMap);
         telemetry.addData("Press play to start TeleOp Mode", "");
 
         waitForStart();
