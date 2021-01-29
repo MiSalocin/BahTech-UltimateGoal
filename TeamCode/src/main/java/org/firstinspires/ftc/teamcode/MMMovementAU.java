@@ -1,13 +1,12 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 public class MMMovementAU {
 
-    // Variables used in the shooter and the claw
+    //Variables used in the shooter and the claw
     private int    x = 0;
     private double y = 0.8;
 
@@ -47,13 +46,14 @@ public class MMMovementAU {
          arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
          // Motors that will be used in the shooter
-         DcMotor intake = local.dcMotor.get("intake_motor");
          shooter = local.dcMotor.get("shooter_motor");
          shooT = local.servo.get("shooter_trig_servo");
+         */
 
         // Motors that will be on all the time
+        DcMotor intake = local.dcMotor.get("intake_motor");
+        intake.setDirection(DcMotor.Direction.REVERSE);
         intake.setPower(1);
-         */
     }
 
     void moveF (double front, double side, double turn){
@@ -85,30 +85,30 @@ public class MMMovementAU {
     }
 
     /** Program used in the shot and claw
-    void moveClaw(String Vertical, boolean openHand, boolean closeHand){
+     void moveClaw(String Vertical, boolean openHand, boolean closeHand){
 
-        // move up or down the claw
-        if (Vertical.equals("up") || Vertical.equals("Up")) {
-            arm.setTargetPosition(x = -1);
-            arm.setPower(1);
-        }else if (Vertical.equals("down") || Vertical.equals("Down")) {
-            arm.setTargetPosition(x = -653);
-            arm.setPower(1);
-        }else arm.setPower(0);
+     // move up or down the claw
+     if (Vertical.equals("up") || Vertical.equals("Up")) {
+     arm.setTargetPosition(x = -1);
+     arm.setPower(1);
+     }else if (Vertical.equals("down") || Vertical.equals("Down")) {
+     arm.setTargetPosition(x = -653);
+     arm.setPower(1);
+     }else arm.setPower(0);
 
-        // Open or close the robot's "hand"
-        if (openHand  && y < 1) hand.setPosition(y += 0.05);
-        if (closeHand && y > 0) hand.setPosition(y -= 0.05);
+     // Open or close the robot's "hand"
+     if (openHand  && y < 1) hand.setPosition(y += 0.05);
+     if (closeHand && y > 0) hand.setPosition(y -= 0.05);
 
-    }
+     }
 
-    void shot(double force){
+     void shot(double force){
 
-        shooter.setPower(force);
-        shooT.setPosition(1);
-        shooT.setPosition(0);
+     shooter.setPower(force);
+     shooT.setPosition(1);
+     shooT.setPosition(0);
 
-    }
+     }
      */
 
     public double getY() {
