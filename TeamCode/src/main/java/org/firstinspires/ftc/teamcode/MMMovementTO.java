@@ -1,8 +1,16 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class MMMovementTO {
 
@@ -25,6 +33,15 @@ public class MMMovementTO {
     private DcMotor shooter;
     private Servo shooT;
     **/
+
+    // Starts the IMU
+    private BNO055IMU imu;
+    private Orientation angles;
+    private Acceleration gravity;
+    private final BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+    private double z=0;
+    private double inter = 1;
+    private double exter = 1;
 
     void defHardware (HardwareMap local) {
 
@@ -55,25 +72,85 @@ public class MMMovementTO {
 
         // If the right bumper is pressed, the robot will move slower
         if (slower) {
-            frontRight.setPower((+leftY + leftX - rightX) / 4);
-            backRight .setPower((+leftY - leftX - rightX) / 4);
-            frontLeft .setPower((+leftY - leftX + rightX) / 4);
-            backLeft  .setPower((+leftY + leftX + rightX) / 4);
+            frontRight.setPower(( + leftY + leftX - rightX) / 4);
+            backRight .setPower(( + leftY - leftX - rightX) / 4);
+            frontLeft .setPower(( + leftY - leftX + rightX) / 4);
+            backLeft  .setPower(( + leftY + leftX + rightX) / 4);
         }
         // If the right bumper is pressed, the robot will move faster
         else if (faster) {
-            frontRight.setPower( + leftY + leftX - rightX );
-            backRight .setPower( + leftY - leftX - rightX );
-            frontLeft .setPower( + leftY - leftX + rightX );
-            backLeft  .setPower( + leftY + leftX + rightX );
+            frontRight.setPower( + leftY + leftX - rightX);
+            backRight .setPower( + leftY - leftX - rightX);
+            frontLeft .setPower( + leftY - leftX + rightX);
+            backLeft  .setPower( + leftY + leftX + rightX);
         }
         // If neither bumper is pressed, the robot will move half the speed
         else {
-            frontRight.setPower(( + leftY + leftX - rightX ) / 2);
-            backRight .setPower(( + leftY - leftX - rightX ) / 2);
-            frontLeft .setPower(( + leftY - leftX + rightX ) / 2);
-            backLeft  .setPower(( + leftY + leftX + rightX ) / 2);
+            frontRight.setPower(( + leftY + leftX - rightX) / 2);
+            backRight .setPower(( + leftY - leftX - rightX) / 2);
+            frontLeft .setPower(( + leftY - leftX + rightX) / 2);
+            backLeft  .setPower(( + leftY + leftX + rightX) / 2);
         }
+    }
+
+    void startIMU (HardwareMap local){
+        imu = local.get(BNO055IMU.class, "imu");
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+        parameters.loggingEnabled = true;
+        parameters.loggingTag = "IMU";
+        imu.initialize(parameters);
+        z++;
+        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+    }
+
+    String moveArena(double leftY, double leftX, double rightX, boolean slower, boolean faster){
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        double angle = angles.firstAngle;
+
+        if (0 < angle && angle <= 90){
+            exter = -(angle/45-1);
+        }
+        else if (90 < angle && angle <= 180){
+            inter = -((angle-90)/45-1);
+        }
+        else if (-90 < angle && angle <= 0){
+            inter = angle/45+1;
+        }
+        else if (-180 < angle && angle <= 90){
+            exter = (angle+90)/45+1;
+        }
+
+        double frForce = leftY * inter + leftX * inter - rightX,
+               brForce = leftY * exter - leftX * exter - rightX,
+               flForce = leftY * exter - leftX * exter + rightX,
+               blForce = leftY * inter + leftX * inter + rightX;
+
+        // If the right bumper is pressed, the robot will move slower
+        if (slower) {
+            frontRight.setPower(frForce / 4);
+            backRight .setPower(brForce / 4);
+            frontLeft .setPower(flForce / 4);
+            backLeft  .setPower(blForce / 4);
+        }
+        // If the right bumper is pressed, the robot will move faster
+        else if (faster) {
+            frontRight.setPower(frForce);
+            backRight .setPower(brForce);
+            frontLeft .setPower(flForce);
+            backLeft  .setPower(blForce);
+        }
+        // If neither bumper is pressed, the robot will move half the speed
+        else {
+            frontRight.setPower(frForce / 2);
+            backRight .setPower(brForce / 2);
+            frontLeft .setPower(flForce / 2);
+            backLeft  .setPower(blForce / 2);
+        }
+        return "inter: " + inter +
+             "\nExter: " + exter +
+             "\nAngle: " + angle;
     }
 
     /**Program used in the shot and claw

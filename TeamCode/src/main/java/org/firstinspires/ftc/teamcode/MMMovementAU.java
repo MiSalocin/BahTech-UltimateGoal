@@ -1,12 +1,19 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class MMMovementAU {
 
-    //Variables used in the shooter and the claw
+    // Variables used in the shooter and the claw
     private int    x = 0;
     private double y = 0.8;
 
@@ -18,15 +25,14 @@ public class MMMovementAU {
 
     private DcMotor intake;
 
-    /** Defining motor for claw and shooter
-     // Motors that will be used in the claw
-     private DcMotor arm;
-     private Servo hand;
+    /* Motors that will be used in the claw
+    private DcMotor arm;
+    private Servo hand;
 
-     // Motors that will be used in the shooter
-     private DcMotor shooter;
-     private Servo shooT;
-     */
+    // Motors that will be used in the shooter
+    private DcMotor shooter;
+    private Servo shooT;
+    */
 
     void defHardware (HardwareMap local) {
 
@@ -40,22 +46,22 @@ public class MMMovementAU {
         frontRight.setDirection(DcMotor.Direction.REVERSE);
         backRight.setDirection(DcMotor.Direction.REVERSE);
 
-        /*Specify the claw and shooter motors
-         // Motors that wil be used in the claw
-         arm = local.dcMotor.get("arm_motor");
-         hand = local.servo.get("hand_servo");
-         arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-         arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        /*
+        // Motors that wil be used in the claw
+        arm = local.dcMotor.get("arm_motor");
+        hand = local.servo.get("hand_servo");
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-         // Motors that will be used in the shooter
-         shooter = local.dcMotor.get("shooter_motor");
-         shooT = local.servo.get("shooter_trig_servo");
-         */
+        // Motors that will be used in the shooter
+        shooter = local.dcMotor.get("shooter_motor");
+        shooT = local.servo.get("shooter_trig_servo");
 
         // Motors that will be on all the time
         intake = local.dcMotor.get("intake_motor");
         intake.setDirection(DcMotor.Direction.REVERSE);
         intake.setPower(1);
+         */
     }
 
     void moveF (double front, double side, double turn){
@@ -84,36 +90,5 @@ public class MMMovementAU {
         frontLeft .setPower(( + front - side + turn )/2);
         backLeft  .setPower(( + front + side + turn )/2);
 
-    }
-
-    /** Program used in the shot and claw
-     void moveClaw(String Vertical, boolean openHand, boolean closeHand){
-
-     // move up or down the claw
-     if (Vertical.equals("up") || Vertical.equals("Up")) {
-     arm.setTargetPosition(x = -1);
-     arm.setPower(1);
-     }else if (Vertical.equals("down") || Vertical.equals("Down")) {
-     arm.setTargetPosition(x = -653);
-     arm.setPower(1);
-     }else arm.setPower(0);
-
-     // Open or close the robot's "hand"
-     if (openHand  && y < 1) hand.setPosition(y += 0.05);
-     if (closeHand && y > 0) hand.setPosition(y -= 0.05);
-
-     }
-
-     void shot(double force){
-
-     shooter.setPower(force);
-     shooT.setPosition(1);
-     shooT.setPosition(0);
-
-     }
-     */
-
-    public double getY() {
-        return y;
     }
 }
