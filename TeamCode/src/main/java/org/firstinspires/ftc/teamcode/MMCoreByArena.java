@@ -9,15 +9,13 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class MMCoreByArena extends LinearOpMode {
 
     // Map the hardware to autonomus and teleOp
-    final MMMovementTO moveTele = new MMMovementTO();
-    final MMMovementAU moveAuto = new MMMovementAU();
+    final MMMovement moveTele = new MMMovement();
 
-    double x = 1;
+    double x = 0.8, y = 0;
 
     @Override
     public void runOpMode() {
         // Create the Hardware Map in both our classes
-        moveAuto.defHardware(hardwareMap);
         moveTele.defHardware(hardwareMap);
         moveTele.startIMU(hardwareMap);
 
@@ -36,7 +34,20 @@ public class MMCoreByArena extends LinearOpMode {
             boolean lb = gamepad1.left_bumper;
             boolean rb = gamepad1.right_bumper;
 
-            telemetry.addData("",moveTele.moveArena(leftX, leftY, rightX, lb, rb));
+            telemetry.addData("LextX: ", leftX);
+            telemetry.addData("LextY: ", leftY);
+            telemetry.addData("RightX: ", rightX);
+
+            if (gamepad1.back)
+                y = 1;
+            if (gamepad1.start)
+                y = 2;
+            if (y == 0)
+                telemetry.addData("Aperte START para definir a frente a partir do Robô e BACK para a da arena", "");
+            if (y == 1)
+                telemetry.addData("", moveTele.moveArena(leftX, leftY, rightX, lb, rb));
+            if (y == 2)
+                moveTele.moveRobot(leftX, leftY, rightX, lb, rb);
             telemetry.update();
         }
 

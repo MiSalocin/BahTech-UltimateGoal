@@ -2,19 +2,14 @@ package org.firstinspires.ftc.teamcode;
 
 //Import the general libraries to use in the program
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 @TeleOp(name = "MMCoreByRobot", group = "Bahtech")
 public class MMCoreByRobot extends LinearOpMode {
 
     // Map the hardware to autonomus and teleOp
-    final MMMovementTO moveTele = new MMMovementTO();
-    final MMMovementAU moveAuto = new MMMovementAU();
+    final MMMovement moveTele = new MMMovement();
 
     double x = 1;
     int n = 0;
@@ -22,7 +17,6 @@ public class MMCoreByRobot extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Create the Hardware Map in both our classes
-        moveAuto.defHardware(hardwareMap);
         moveTele.defHardware(hardwareMap);
 
         telemetry.addData("Press play to start TeleOp Mode", "");

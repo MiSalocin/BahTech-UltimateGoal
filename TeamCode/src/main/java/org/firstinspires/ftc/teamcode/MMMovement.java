@@ -4,7 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
+// import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -12,11 +12,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-public class MMMovementTO {
+public class MMMovement {
 
     // Variables used in the shooter and the claw
-    private int    x = 0;
-    private double y = 0.8;
+    // private int    x = 0;
+    // private double y = 0.8;
 
     // Motors that will be used in the movement
     private DcMotor frontRight;
@@ -24,19 +24,17 @@ public class MMMovementTO {
     private DcMotor backRight;
     private DcMotor backLeft;
 
-    /** Defining motor for claw and shooter
+    // Defining motor for claw and shooter
     // Motors that will be used in the claw
-    private DcMotor arm;
-    private Servo hand;
+    // private DcMotor arm;
+    // private Servo hand;
 
     // Motors that will be used in the shooter
-    private DcMotor shooter;
-    private Servo shooT;
-    **/
+    // private DcMotor shooter;
+    // private Servo shooT;
 
     // Starts the IMU
     private BNO055IMU imu;
-    private Orientation angles;
     private Acceleration gravity;
     private final BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
     private double z=0;
@@ -106,26 +104,30 @@ public class MMMovementTO {
     }
 
     String moveArena(double leftY, double leftX, double rightX, boolean slower, boolean faster){
-        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         double angle = angles.firstAngle;
 
         if (0 < angle && angle <= 90){
-            exter = -(angle/45-1);
+            inter = -(angle/45-1);
+            exter = 1;
         }
         else if (90 < angle && angle <= 180){
-            inter = -((angle-90)/45-1);
+            inter = -1;
+            exter = -((angle-90)/45-1);
         }
         else if (-90 < angle && angle <= 0){
-            inter = angle/45+1;
+            inter = 1;
+            exter = angle/45+1;
         }
         else if (-180 < angle && angle <= 90){
-            exter = (angle+90)/45+1;
+            inter = (angle+90)/45+1;
+            exter = -1;
         }
 
-        double frForce = leftY * inter + leftX * inter - rightX,
-               brForce = leftY * exter - leftX * exter - rightX,
-               flForce = leftY * exter - leftX * exter + rightX,
-               blForce = leftY * inter + leftX * inter + rightX;
+        double frForce = leftY * inter - leftX * exter - rightX,
+                brForce = leftY * exter + leftX * inter - rightX,
+                flForce = leftY * exter + leftX * inter + rightX,
+                blForce = leftY * inter - leftX * exter + rightX;
 
         // If the right bumper is pressed, the robot will move slower
         if (slower) {
@@ -148,39 +150,39 @@ public class MMMovementTO {
             frontLeft .setPower(flForce / 2);
             backLeft  .setPower(blForce / 2);
         }
-        return "inter: " + inter +
-             "\nExter: " + exter +
-             "\nAngle: " + angle;
+
+        return "Inter: " + inter +
+                "\nExter: " + exter +
+                "\nAngle: " + angle;
     }
 
-    /**Program used in the shot and claw
-    void moveClaw(boolean up, boolean down, boolean openHand, boolean closeHand){
-
-        // move up or down the claw
-        if (up   && -1   >= arm.getCurrentPosition()) {
-            arm.setTargetPosition(x+=5);
-            arm.setPower(1);
-        }else if (down && -653 <= arm.getCurrentPosition()) {
-            arm.setTargetPosition(x-=5);
-            arm.setPower(1);
-        }else arm.setPower(0);
-
-        // Open or close the robot's "hand"
-        if (openHand  && y < 1) hand.setPosition(y += 0.05);
-        if (closeHand && y > 0) hand.setPosition(y -= 0.05);
-
-    }
-
-    void shot(boolean trigger, double force){
-
-        shooter.setPower(force);
-        if (trigger) shooT.setPosition(1);
-        else   shooT.setPosition(0);
-
-    }
-     */
-
-    public double getY() {
-        return y;
-    }
+    //  Program used in the shot and claw
+    //  void moveClaw(boolean up, boolean down, boolean openHand, boolean closeHand){
+    //
+    //  // move up or down the claw
+    //  if (up   && -1   >= arm.getCurrentPosition()) {
+    //  arm.setTargetPosition(x+=5);
+    //  arm.setPower(1);
+    //  }else if (down && -653 <= arm.getCurrentPosition()) {
+    //  arm.setTargetPosition(x-=5);
+    //  arm.setPower(1);
+    //  }else arm.setPower(0);
+    //
+    //  // Open or close the robot's "hand"
+    //  if (openHand  && y < 1) hand.setPosition(y += 0.05);
+    //  if (closeHand && y > 0) hand.setPosition(y -= 0.05);
+    //
+    //  }
+    //
+    //  void shot(boolean trigger, double force){
+    //
+    //  shooter.setPower(force);
+    //  if (trigger) shooT.setPosition(1);
+    //  else   shooT.setPosition(0);
+    //
+    // }
+    //
+    // public double getY() {
+    //     return y;
+    // }
 }
