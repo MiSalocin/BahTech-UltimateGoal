@@ -12,6 +12,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
+import java.util.Vector;
+
 public class MMMovement {
 
     // Variables used in the shooter and the claw
@@ -19,10 +21,10 @@ public class MMMovement {
     // private double y = 0.8;
 
     // Motors that will be used in the movement
-    private DcMotor frontRight;
-    private DcMotor frontLeft;
-    private DcMotor backRight;
-    private DcMotor backLeft;
+    private DcMotor frontRight,
+            frontLeft,
+            backRight,
+            backLeft;
 
     // Defining motor for claw and shooter
     // Motors that will be used in the claw
@@ -35,10 +37,8 @@ public class MMMovement {
     private double inter = 1;
     private double exter = 1;
 
-    private double lastfrForce = 0,
-            lastbrForce = 0,
-            lastflForce = 0,
-            lastblForce = 0;
+    final private Vector<Double> force = new Vector<>();
+    final private Vector<Double> lastForce = new Vector<>();
 
     // Program used to define the hardware variables
     void defHardware (HardwareMap local) {
@@ -94,50 +94,50 @@ public class MMMovement {
     // Program used to move the robot by himself
     void MoveByRobot (double leftY, double leftX, double rightX, boolean slower, boolean faster){
 
-        double frForce = leftY * inter - leftX * exter - rightX,
-                brForce = leftY * exter + leftX * inter - rightX,
-                flForce = leftY * exter + leftX * inter + rightX,
-                blForce = leftY * inter - leftX * exter + rightX;
+        force.add(0, leftY * inter - leftX * exter - rightX);
+        force.add(1, leftY * exter + leftX * inter - rightX);
+        force.add(2, leftY * exter + leftX * inter + rightX);
+        force.add(3, leftY * inter - leftX * exter + rightX);
 
-        if (Math.abs(lastfrForce-frForce) > 0.25){
-            if (lastfrForce > frForce)  frForce=lastfrForce-0.25;
-            else                        frForce=lastfrForce-0.25;}
-        if (Math.abs(lastbrForce-brForce) > 0.25){
-            if (lastbrForce > brForce)  brForce=lastbrForce-0.25;
-            else                        brForce=lastbrForce-0.25;}
-        if (Math.abs(lastflForce-flForce) > 0.25){
-            if (lastflForce > flForce)  flForce=lastflForce-0.25;
-            else                        flForce=lastflForce-0.25;}
-        if (Math.abs(lastblForce-blForce) > 0.25){
-            if (lastblForce > blForce)  blForce=lastblForce-0.25;
-            else                        blForce=lastblForce-0.25;}
+        if (Math.abs(lastForce.get(0)-force.get(0)) > 0.25){
+            if (lastForce.get(0) > force.get(0))    force.add(0, lastForce.get(0)-0.25);
+            else                                    force.add(0, lastForce.get(0)+0.25);}
+        if (Math.abs(lastForce.get(1)-force.get(1)) > 0.25){
+            if (lastForce.get(1) > force.get(1))    force.add(1, lastForce.get(1)-0.25);
+            else                                    force.add(1, lastForce.get(1)+0.25);}
+        if (Math.abs(lastForce.get(2)-force.get(2)) > 0.25){
+            if (lastForce.get(2) > force.get(2))    force.add(2, lastForce.get(2)-0.25);
+            else                                    force.add(2, lastForce.get(2)+0.25);}
+        if (Math.abs(lastForce.get(0)-force.get(0)) > 0.25){
+            if (lastForce.get(3) > force.get(3))    force.add(3, lastForce.get(3)-0.25);
+            else                                    force.add(3, lastForce.get(3)+0.25);}
+
+        lastForce.add(0, force.get(0));
+        lastForce.add(1, force.get(1));
+        lastForce.add(2, force.get(2));
+        lastForce.add(3, force.get(3));
 
         // If the right bumper is pressed, the robot will move slower
         if (slower) {
-            frontRight.setPower(frForce / 4);
-            backRight .setPower(brForce / 4);
-            frontLeft .setPower(flForce / 4);
-            backLeft  .setPower(blForce / 4);
+            frontRight.setPower(force.get(0) / 4);
+            backRight .setPower(force.get(1) / 4);
+            frontLeft .setPower(force.get(2) / 4);
+            backLeft  .setPower(force.get(3) / 4);
         }
         // If the right bumper is pressed, the robot will move faster
         else if (faster) {
-            frontRight.setPower(frForce);
-            backRight .setPower(brForce);
-            frontLeft .setPower(flForce);
-            backLeft  .setPower(blForce);
+            frontRight.setPower(force.get(0));
+            backRight .setPower(force.get(1));
+            frontLeft .setPower(force.get(2));
+            backLeft  .setPower(force.get(3));
         }
         // If neither bumper is pressed, the robot will move half the speed
         else {
-            frontRight.setPower(frForce / 2);
-            backRight .setPower(brForce / 2);
-            frontLeft .setPower(flForce / 2);
-            backLeft  .setPower(blForce / 2);
+            frontRight.setPower(force.get(0) / 2);
+            backRight .setPower(force.get(1) / 2);
+            frontLeft .setPower(force.get(2) / 2);
+            backLeft  .setPower(force.get(3) / 2);
         }
-
-        lastfrForce = frForce;
-        lastbrForce = brForce;
-        lastflForce = flForce;
-        lastblForce = blForce;
     }
     //  Program used in the shot and claw
     //  void moveClaw(boolean up, boolean down, boolean openHand, boolean closeHand){
