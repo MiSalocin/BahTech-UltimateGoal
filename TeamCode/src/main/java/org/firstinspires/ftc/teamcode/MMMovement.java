@@ -29,19 +29,22 @@ public class MMMovement {
     // private DcMotor arm;
     // private Servo hand;
 
-    // Motors that will be used in the shooter
-    // private DcMotor shooter;
-    // private Servo shooT;
-
-    // Starts the IMU
+    // Starts the IMU variables
     private BNO055IMU imu;
-    private Acceleration gravity;
     private final BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-    private double z=0;
     private double inter = 1;
     private double exter = 1;
 
+    private double lastfrForce = 0,
+            lastbrForce = 0,
+            lastflForce = 0,
+            lastblForce = 0;
+
+    // Program used to define the hardware variables
     void defHardware (HardwareMap local) {
+
+        // Define IMU
+        imu = local.get(BNO055IMU.class, "imu");
 
         // Motors used in the movement
         frontLeft = local.dcMotor.get("front_left_motor");
@@ -59,75 +62,55 @@ public class MMMovement {
          hand = local.servo.get("hand_servo");
          arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
          arm.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-         // Motors that will be used in the shooter
-         shooter = local.dcMotor.get("shooter_motor");
-         shooT = local.servo.get("shooter_trig_servo");
          */
     }
 
-    void moveRobot (double leftX, double leftY, double rightX, boolean slower, boolean faster){
-
-        // If the right bumper is pressed, the robot will move slower
-        if (slower) {
-            frontRight.setPower(( + leftY + leftX - rightX) / 4);
-            backRight .setPower(( + leftY - leftX - rightX) / 4);
-            frontLeft .setPower(( + leftY - leftX + rightX) / 4);
-            backLeft  .setPower(( + leftY + leftX + rightX) / 4);
-        }
-        // If the right bumper is pressed, the robot will move faster
-        else if (faster) {
-            frontRight.setPower( + leftY + leftX - rightX);
-            backRight .setPower( + leftY - leftX - rightX);
-            frontLeft .setPower( + leftY - leftX + rightX);
-            backLeft  .setPower( + leftY + leftX + rightX);
-        }
-        // If neither bumper is pressed, the robot will move half the speed
-        else {
-            frontRight.setPower(( + leftY + leftX - rightX) / 2);
-            backRight .setPower(( + leftY - leftX - rightX) / 2);
-            frontLeft .setPower(( + leftY - leftX + rightX) / 2);
-            backLeft  .setPower(( + leftY + leftX + rightX) / 2);
-        }
-    }
-
-    void startIMU (HardwareMap local){
-        imu = local.get(BNO055IMU.class, "imu");
+    // Define the IMU parameter that will be used when it is used
+    void startIMU (){
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
         parameters.loggingEnabled = true;
         parameters.loggingTag = "IMU";
         imu.initialize(parameters);
-        z++;
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
     }
 
-    String moveArena(double leftY, double leftX, double rightX, boolean slower, boolean faster){
+    // Program used to move the robot using the arena
+    double moveByArena(double leftY, double leftX, double rightX, boolean slower, boolean faster){
+
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         double angle = angles.firstAngle;
 
-        if (0 < angle && angle <= 90){
-            inter = -(angle/45-1);
-            exter = 1;
-        }
-        else if (90 < angle && angle <= 180){
-            inter = -1;
-            exter = -((angle-90)/45-1);
-        }
-        else if (-90 < angle && angle <= 0){
-            inter = 1;
-            exter = angle/45+1;
-        }
-        else if (-180 < angle && angle <= 90){
-            inter = (angle+90)/45+1;
-            exter = -1;
-        }
+        if (0 < angle && angle <= 90)      {inter = -(angle/45-1); exter = 1;}
+        else if (90 < angle && angle <= 180)    {inter = -1; exter = -((angle-90)/45-1);}
+        else if (-90 < angle && angle <= 0)     {inter = 1; exter = angle/45+1;}
+        else if (-180 < angle && angle <= 90)   {inter = (angle+90)/45+1; exter = -1;}
+
+        MoveByRobot(leftY, leftX, rightX, slower, faster);
+        return angle;
+    }
+
+    // Program used to move the robot by himself
+    void MoveByRobot (double leftY, double leftX, double rightX, boolean slower, boolean faster){
 
         double frForce = leftY * inter - leftX * exter - rightX,
                 brForce = leftY * exter + leftX * inter - rightX,
                 flForce = leftY * exter + leftX * inter + rightX,
                 blForce = leftY * inter - leftX * exter + rightX;
+
+        if (Math.abs(lastfrForce-frForce) > 0.25){
+            if (lastfrForce > frForce)  frForce=lastfrForce-0.25;
+            else                        frForce=lastfrForce-0.25;}
+        if (Math.abs(lastbrForce-brForce) > 0.25){
+            if (lastbrForce > brForce)  brForce=lastbrForce-0.25;
+            else                        brForce=lastbrForce-0.25;}
+        if (Math.abs(lastflForce-flForce) > 0.25){
+            if (lastflForce > flForce)  flForce=lastflForce-0.25;
+            else                        flForce=lastflForce-0.25;}
+        if (Math.abs(lastblForce-blForce) > 0.25){
+            if (lastblForce > blForce)  blForce=lastblForce-0.25;
+            else                        blForce=lastblForce-0.25;}
 
         // If the right bumper is pressed, the robot will move slower
         if (slower) {
@@ -151,11 +134,11 @@ public class MMMovement {
             backLeft  .setPower(blForce / 2);
         }
 
-        return "Inter: " + inter +
-                "\nExter: " + exter +
-                "\nAngle: " + angle;
+        lastfrForce = frForce;
+        lastbrForce = brForce;
+        lastflForce = flForce;
+        lastblForce = blForce;
     }
-
     //  Program used in the shot and claw
     //  void moveClaw(boolean up, boolean down, boolean openHand, boolean closeHand){
     //
@@ -180,9 +163,5 @@ public class MMMovement {
     //  if (trigger) shooT.setPosition(1);
     //  else   shooT.setPosition(0);
     //
-    // }
-    //
-    // public double getY() {
-    //     return y;
     // }
 }
