@@ -93,15 +93,12 @@ public class MMMovement {
         if (Math.abs(lastflforce - flforce) > 0.15 || Math.abs(lastflforce - flforce) < 0.15){
             if (lastflforce > flforce)              flforce = lastflforce - 0.15;
             else                                    flforce = lastflforce + 0.15;}
-
         if (Math.abs(lastfrforce - frforce) > 0.15 || Math.abs(lastfrforce - frforce) < 0.15){
             if (lastfrforce > frforce)              frforce = lastfrforce - 0.15;
             else                                    frforce = lastfrforce + 0.15;}
-
         if (Math.abs(lastblforce - blforce) > 0.15 || Math.abs(lastblforce - blforce) < 0.15){
             if (lastblforce > blforce)              blforce = lastblforce - 0.15;
             else                                    blforce = lastblforce + 0.15;}
-
         if (Math.abs(lastbrforce - brforce) > 0.15 || Math.abs(lastbrforce - brforce) < 0.15){
             if (lastbrforce > brforce)              brforce = lastbrforce - 0.15;
             else                                    brforce = lastbrforce + 0.15;}
