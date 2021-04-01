@@ -16,8 +16,6 @@ public class MMCore extends LinearOpMode {
 
         // Create the Hardware Map and start IMU
         move.defHardware(hardwareMap);
-        move.turn(90, 1, 0.9);
-        move.turn(90,0, 0.6);
         // Run once you press PLAY
         waitForStart();
 

@@ -13,10 +13,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 public class MMMovement {
 
     // Motors that will be used in the movement
-    private DcMotor frontRight,
-            frontLeft,
-            backRight,
-            backLeft;
+    private DcMotor FR,
+            FL,
+            BR,
+            BL;
 
     // Starts the IMU
     private BNO055IMU imu;
@@ -50,14 +50,10 @@ public class MMMovement {
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
 
         // Motors used in the movement
-        frontLeft = local.dcMotor.get("front_left_motor");
-        frontRight = local.dcMotor.get("front_right_motor");
-        backLeft = local.dcMotor.get("back_left_motor");
-        backRight = local.dcMotor.get("back_right_motor");
-
-        // Reverse right motors to make programming easier
-        frontRight.setDirection(DcMotor.Direction.REVERSE);
-        backRight.setDirection(DcMotor.Direction.REVERSE);
+        FL = local.dcMotor.get("front_left_motor");
+        FR = local.dcMotor.get("front_right_motor");
+        BL = local.dcMotor.get("back_left_motor");
+        BR = local.dcMotor.get("back_right_motor");
     }
 
     // Program used to move the robot using the arena
@@ -111,24 +107,24 @@ public class MMMovement {
 
         // If the right bumper is pressed, the robot will move slower
         if (slower) {
-            frontRight.setPower(flforce / 4);
-            backRight .setPower(frforce / 4);
-            frontLeft .setPower(blforce / 4);
-            backLeft  .setPower(brforce / 4);
+            FR.setPower(flforce / 4);
+            BR .setPower(frforce / 4);
+            FL .setPower(blforce / 4);
+            BL  .setPower(brforce / 4);
         }
         // If the right bumper is pressed, the robot will move faster
         else if (faster) {
-            frontRight.setPower(flforce);
-            backRight .setPower(frforce);
-            frontLeft .setPower(blforce);
-            backLeft  .setPower(brforce);
+            FR.setPower(flforce);
+            BR .setPower(frforce);
+            FL .setPower(blforce);
+            BL  .setPower(brforce);
         }
         // If neither bumper is pressed, the robot will move half the speed
         else {
-            frontRight.setPower(flforce / 2);
-            backRight .setPower(frforce / 2);
-            frontLeft .setPower(blforce / 2);
-            backLeft  .setPower(brforce / 2);
+            FR.setPower(flforce / 2);
+            BR .setPower(frforce / 2);
+            FL .setPower(blforce / 2);
+            BL  .setPower(brforce / 2);
         }
     }
 
@@ -143,18 +139,16 @@ public class MMMovement {
                 currentAngle = angles.firstAngle;
 
                 if (force < (angle-currentAngle/100)) {
-                    frontRight.setPower(-force);
-                    backRight. setPower(-force);
-                    frontLeft. setPower( force);
-                    backLeft.  setPower( force);
+                    FR.setPower(-force);
+                    BR. setPower(-force);
+                    FL. setPower( force);
+                    BL.  setPower( force);
                 }else{
-                    frontRight.setPower(-(angle-currentAngle)/100);
-                    backRight. setPower(-(angle-currentAngle)/100);
-                    frontLeft. setPower( (angle-currentAngle)/100);
-                    backLeft.  setPower( (angle-currentAngle)/100);
+                    FR.setPower(-(angle-currentAngle)/100);
+                    BR. setPower(-(angle-currentAngle)/100);
+                    FL. setPower( (angle-currentAngle)/100);
+                    BL.  setPower( (angle-currentAngle)/100);
                 }
-
-
             }
         }
         else{
@@ -163,21 +157,21 @@ public class MMMovement {
                 currentAngle = angles.firstAngle;
 
                 if (force < (angle-currentAngle/100)) {
-                    frontRight.setPower( force);
-                    backRight. setPower( force);
-                    frontLeft. setPower(-force);
-                    backLeft.  setPower(-force);
+                    FR.setPower( force);
+                    BR. setPower( force);
+                    FL. setPower(-force);
+                    BL.  setPower(-force);
                 }else{
-                    frontRight.setPower( (angle-currentAngle)/100);
-                    backRight. setPower( (angle-currentAngle)/100);
-                    frontLeft. setPower(-(angle-currentAngle)/100);
-                    backLeft.  setPower(-(angle-currentAngle)/100);
+                    FR.setPower( (angle-currentAngle)/100);
+                    BR. setPower( (angle-currentAngle)/100);
+                    FL. setPower(-(angle-currentAngle)/100);
+                    BL.  setPower(-(angle-currentAngle)/100);
                 }
             }
-            frontRight.setPower(0);
-            backRight .setPower(0);
-            frontLeft .setPower(0);
-            backLeft  .setPower(0);
+            FR.setPower(0);
+            BR .setPower(0);
+            FL .setPower(0);
+            BL  .setPower(0);
         }
     }
 }
