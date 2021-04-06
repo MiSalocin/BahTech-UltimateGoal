@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 //Import the general libraries to use in the program
 
+import android.annotation.SuppressLint;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -11,6 +13,7 @@ public class MMCore extends LinearOpMode {
     // Map the hardware to autonomous and teleOp
     final MMMovement move = new MMMovement();
 
+    @SuppressLint("DefaultLocale")
     @Override
     public void runOpMode() {
 
@@ -24,7 +27,7 @@ public class MMCore extends LinearOpMode {
         double y = 1;
         double shooterForce = 0;
 
-        // Run repeatly after you press play
+        // Run repeatedly after you press play
         while(opModeIsActive()){
 
             // Create variables for the control
@@ -36,30 +39,30 @@ public class MMCore extends LinearOpMode {
             boolean dpadRight = gamepad1.dpad_right;
             boolean dPadLeft = gamepad1.dpad_left;
 
-            if(dPadLeft && move.getShooterForce()>=0){
-                shooterForce-=0.01;
-            }else if(dpadRight && move.getShooterForce()<=1){
-                shooterForce+=0.01;
-            }
-            move.setShooterForce(shooterForce);
+            // if(dPadLeft && move.getShooterForce()>=0){
+            //     shooterForce-=0.01;
+            // }else if(dpadRight && move.getShooterForce()<=1){
+            //     shooterForce+=0.01;
+            // }
+            // move.setShooterForce(shooterForce);
 
 
             if (gamepad1.back)  y = 1;
             if (gamepad1.start) y = 2;
 
             if (y != 0) {
-                telemetry.addData("LextX: ", leftX);
-                telemetry.addData("LextY: ", leftY);
-                telemetry.addData("RightX: ", rightX);
-                // telemetry.addData("Shooter Force: ", move.getShooterForce());
+                telemetry.addData("LextX ", String.format("%.2f", leftX));
+                telemetry.addData("LextY ", String.format("%.2f", leftY));
+                telemetry.addData("RightX ", String.format("%.2f", rightX));
+                // telemetry.addData("Shooter Force: ", String.format("%.2f", move.getShooterForce()));
                 telemetry.addData("","");
-                telemetry.addData("Front Left Motor: ", move.getFlforce());
-                telemetry.addData("Front Right Motor: ", move.getFRforce());
-                telemetry.addData("Back Left Motor: ", move.getBlforce());
-                telemetry.addData("Back Right Motor: ", move.getBrforce());
+                telemetry.addData("Front Left Motor ", String.format("%.2f", move.getFlForce()));
+                telemetry.addData("Front Right Motor ", String.format("%.2f", move.getFrForce()));
+                telemetry.addData("Back Left Motor ", String.format("%.2f", move.getBlForce()));
+                telemetry.addData("Back Right Motor ", String.format("%.2f", move.getBrForce()));
                 telemetry.addData("","");
-                telemetry.addData("Intern: ", move.getIntern());
-                telemetry.addData("Extern: ", move.getExtern());
+                telemetry.addData("Intern ", String.format("%.2f", move.getIntern()));
+                telemetry.addData("Extern ", String.format("%.2f", move.getExtern()));
             }
 
             if (y == 1) move.moveByArena(leftY, leftX, rightX, lb, rb);

@@ -21,7 +21,6 @@ public class MMMovement {
     private DcMotor BL;
 
     // private DcMotor shooterMotor;
-    // private DcMotor intake;
     // private Servo shooterServo;
 
     // Starts the IMU
@@ -30,18 +29,11 @@ public class MMMovement {
     private double intern = 1;
     private double extern = 1;
 
-    double shooterForce = 1;
+    private double shooterForce = 1;
 
     // Create vectors to define the forces with less variables
-    private double flforce = 0;
-    private double frforce = 0;
-    private double blforce = 0;
-    private double brforce = 0;
-
-    private double lastflforce = 0;
-    private double lastfrforce = 0;
-    private double lastblforce = 0;
-    private double lastbrforce = 0;
+    private final double[] force = new double[4];
+    private final double[] lastForce = new double[4];
 
     // Program used to define the hardware variables
     public void defHardware (HardwareMap local) {
@@ -64,7 +56,7 @@ public class MMMovement {
 
         // shooterServo = local.servo.get("shooter_trig_servo");
         // shooterMotor = local.dcMotor.get("shooter_motor");
-        // intake = local.dcMotor.get("intake_motor");
+        // DcMotor intake = local.dcMotor.get("intake_motor");
         // shooterMotor.setPower(1);
         // intake.setPower(1);
 
@@ -79,7 +71,7 @@ public class MMMovement {
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         double angle = angles.firstAngle;
 
-        // Will see the IMU value and change the "inter" and "exter" variaibles
+        // Will see the IMU value and change the "intern" and "extern" variables
         if      (   0 < angle && angle <= 90 )   {
             intern = -(angle/45-1);    extern = 1;}
         else if (  90 < angle && angle <= 180)   {
@@ -89,62 +81,65 @@ public class MMMovement {
         else if (-180 < angle && angle <= 90 )   {
             intern = (angle+90)/45+1;  extern = -1;}
 
-        // Will start the normal "MoveByRobot" program, but using the Inter and Exter Multipliers
+        // Will start the normal "MoveByRobot" program, but using the Intern and Extern Multipliers
         MoveByRobot(leftY, leftX, rightX, slower, faster);
     }
 
     // Program used to move the robot by himself
     public void MoveByRobot (double leftY, double leftX, double rightX, boolean slower, boolean faster){
-
+        final double smoother = 0.10;
 
         // Add to the vector the forces of the gamepad multiplying this with the angle defined
         // in the "MoveByArena" program.
-        flforce = leftY * intern + leftX * extern + rightX;
-        frforce = leftY * extern - leftX * intern + rightX;
-        blforce = leftY * extern - leftX * intern - rightX;
-        brforce = leftY * intern + leftX * extern - rightX;
+        force[0] = leftY * intern + leftX * extern + rightX;
+        force[1] = leftY * extern - leftX * intern + rightX;
+        force[2] = leftY * extern - leftX * intern - rightX;
+        force[3] = leftY * intern + leftX * extern - rightX;
 
         // See if the difference of the last force and the current one is bigger than 0.1,
         // if it is, it will change gradually to not damage the motors
-        if (Math.abs(lastflforce - flforce) > 0.15 || Math.abs(lastflforce - flforce) < 0.15){
-            if (lastflforce > flforce)              flforce = lastflforce - 0.15;
-            else                                    flforce = lastflforce + 0.15;}
-        if (Math.abs(lastfrforce - frforce) > 0.15 || Math.abs(lastfrforce - frforce) < 0.15){
-            if (lastfrforce > frforce)              frforce = lastfrforce - 0.15;
-            else                                    frforce = lastfrforce + 0.15;}
-        if (Math.abs(lastblforce - blforce) > 0.15 || Math.abs(lastblforce - blforce) < 0.15){
-            if (lastblforce > blforce)              blforce = lastblforce - 0.15;
-            else                                    blforce = lastblforce + 0.15;}
-        if (Math.abs(lastbrforce - brforce) > 0.15 || Math.abs(lastbrforce - brforce) < 0.15){
-            if (lastbrforce > brforce)              brforce = lastbrforce - 0.15;
-            else                                    brforce = lastbrforce + 0.15;}
+        if (Math.abs(lastForce[0] - force[0]) > smoother){
+            if (lastForce[0] > force[0])              force[0] = lastForce[0] - smoother;
+            else                                    force[0] = lastForce[0] + smoother;}
+
+        if (Math.abs(lastForce[1] - force[1]) > smoother){
+            if (lastForce[1] > force[1])              force[1] = lastForce[1] - smoother;
+            else                                    force[1] = lastForce[1] + smoother;}
+
+        if (Math.abs(lastForce[2] - force[2]) > smoother){
+            if (lastForce[2] > force[2])              force[2] = lastForce[2] - smoother;
+            else                                    force[2] = lastForce[2] + smoother;}
+
+        if (Math.abs(lastForce[3] - force[3]) > smoother){
+            if (lastForce[3] > force[3])              force[3] = lastForce[3] - smoother;
+            else                                    force[3] = lastForce[3] + smoother;}
 
         // Save the used force in variables to get the difference
-        lastflforce = flforce;
-        lastfrforce = frforce;
-        lastblforce = blforce;
-        lastbrforce = brforce;
+        lastForce[0] = force[0];
+        lastForce[1] = force[1];
+        lastForce[2] = force[2];
+        lastForce[3] = force[3];
 
         // If the right bumper is pressed, the robot will move slower
         if (slower) {
-            FR.setPower(flforce / 4);
-            BR .setPower(frforce / 4);
-            FL .setPower(blforce / 4);
-            BL  .setPower(brforce / 4);
+            FR.setPower(force[0] / 4);
+            BR .setPower(force[1] / 4);
+            FL .setPower(force[2] / 4);
+            BL  .setPower(force[3] / 4);
         }
         // If the right bumper is pressed, the robot will move faster
         else if (faster) {
-            FR.setPower(flforce);
-            BR .setPower(frforce);
-            FL .setPower(blforce);
-            BL  .setPower(brforce);
+            FR.setPower(force[0]);
+            BR .setPower(force[1]);
+            FL .setPower(force[2]);
+            BL  .setPower(force[3]);
         }
         // If neither bumper is pressed, the robot will move half the speed
         else {
-            FR.setPower(flforce / 2);
-            BR .setPower(frforce / 2);
-            FL .setPower(blforce / 2);
-            BL  .setPower(brforce / 2);
+            FR.setPower(force[0] / 2);
+            BR .setPower(force[1] / 2);
+            FL .setPower(force[2] / 2);
+            BL  .setPower(force[3] / 2);
         }
     }
 
@@ -206,12 +201,12 @@ public class MMMovement {
     //     }
     // }
 
-    double getIntern(){return intern;}
-    double getExtern(){return extern;}
-    double getFlforce (){return FL.getPower();};
-    double getFRforce (){return FR.getPower();};
-    double getBlforce (){return BL.getPower();};
-    double getBrforce (){return BR.getPower();};
-    // double getShooterForce(){return shooterMotor.getPower();}
-    void setShooterForce(double shooterForce){this.shooterForce = shooterForce;}
+    public double getIntern(){return intern;}
+    public double getExtern(){return extern;}
+    public double getFlForce(){return FL.getPower();}
+    public double getFrForce(){return FR.getPower();}
+    public double getBlForce(){return BL.getPower();}
+    public double getBrForce(){return BR.getPower();}
+    // public double getShooterForce(){return shooterMotor.getPower();}
+    // public void setShooterForce(double shooterForce){this.shooterForce = shooterForce;}
 }
