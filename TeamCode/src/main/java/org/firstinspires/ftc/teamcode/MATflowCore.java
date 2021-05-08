@@ -391,7 +391,6 @@ public class MATflowCore extends LinearOpMode {
         imu.initialize(parameters);
     }
 
-
     public void movePID(double angle, double distance, double speed){
         runtime.reset();
 
@@ -400,6 +399,8 @@ public class MATflowCore extends LinearOpMode {
         final double ki = 0.5;
         final double kd = 1;
         final double k = 100;
+
+        // Define how much times per millisecond you want to update the PID values
         final double updateRate = 1;
 
         // define the PID variables
@@ -434,9 +435,11 @@ public class MATflowCore extends LinearOpMode {
             // the PID in action
             if (runtime.milliseconds() % updateRate == 0) {
                 error = angle - currentAngle;
+
                 p = error * kp;
                 i += error * ki;
                 d = (error - lastError) * kd;
+
                 lastError = error;
                 pid = (p + i + d) / k;
             }
