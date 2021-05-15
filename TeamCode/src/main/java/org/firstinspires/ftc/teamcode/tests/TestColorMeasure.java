@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.tests;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -41,7 +41,7 @@ import com.qualcomm.robotcore.hardware.ColorSensor;
 
 // Program used to measure the color values
 @Autonomous(name = "TestingColorMeasure", group = "Testes")
-public class TestingColorMeasure extends LinearOpMode {
+public class TestColorMeasure extends LinearOpMode {
 
   ColorSensor colorSensor;    // Hardware Device Object
 

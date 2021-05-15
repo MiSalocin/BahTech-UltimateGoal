@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.tests;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 @Autonomous(name = "TestingEncoders", group = "Testes")
-public class TestingEncoders extends LinearOpMode {
+public class TestEncoders extends LinearOpMode {
 
 
     DcMotor FL = null;

@@ -1,14 +1,14 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.tests;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.MMMovementSave;
 
 @TeleOp(name = "TestGiro", group = "BahTech")
-public class testGyro extends LinearOpMode {
+public class TestGyro extends LinearOpMode {
 
-    MMMovement move = new MMMovement();
+    MMMovementSave move = new MMMovementSave();
 
     @Override
     public void runOpMode() throws InterruptedException {

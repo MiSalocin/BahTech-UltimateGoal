@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.tests;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -20,19 +20,20 @@ public class testShoot extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            shooterMotor.setPower(0.8);
             float triggerValueR = gamepad1.right_trigger;
             float triggerValueL = gamepad1.left_trigger;
 
-            if (triggerValueR > 0.3) {
-                shooterServo.setPosition(0.3); //aqui
-                sleep(500);
-                shooterServo.setPosition(0.8); //aqui
-            }
+            while(triggerValueL < 0.3) {
+            shooterMotor.setPower(0.85);
+
+                shooterServo.setPosition(0.3);
+                sleep(300);
+                shooterServo.setPosition(0.8);
 
             telemetry.addData("LeftTrigger", triggerValueL);
             telemetry.addData("RightTrigger", triggerValueR);
             telemetry.update();
+            }
         }
     }
 }

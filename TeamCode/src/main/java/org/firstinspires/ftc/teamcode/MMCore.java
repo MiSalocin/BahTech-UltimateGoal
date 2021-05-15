@@ -2,23 +2,27 @@ package org.firstinspires.ftc.teamcode;
 
 //Import the general libraries to use in the program
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import android.annotation.SuppressLint;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name = "MMCore", group = "BahTech")
 public class MMCore extends LinearOpMode {
+    final ElapsedTime time = new ElapsedTime();
 
     // Map the hardware to autonomous and TeleOp
     final MMMovement move = new MMMovement();
 
+    @SuppressLint("DefaultLocale")
     @Override
     public void runOpMode() throws InterruptedException {
 
         // Create the Hardware Map and start IMU
-        move.defHardware(hardwareMap);
+        move.defHardware();
+        move.initIMU();
         move.intakeForce(0);
-        boolean x = true;
 
         // Run once you press PLAY
         waitForStart();
@@ -26,14 +30,13 @@ public class MMCore extends LinearOpMode {
         // Run repeatedly after you press play
         while(opModeIsActive()){
 
-            if (x && gamepad1.dpad_down){
+            if (gamepad1.dpad_up){
                 move.intakeForce(0);
-                x=false;
-                sleep(500);
-            } else if (!x && gamepad1.dpad_down){
+                sleep(250);
+            }
+            if (gamepad1.dpad_up){
                 move.intakeForce(1);
-                x=true;
-                sleep(500);
+                sleep(250);
             }
 
             // Create variables for the control
@@ -43,16 +46,17 @@ public class MMCore extends LinearOpMode {
             boolean lb = gamepad1.left_bumper;
             boolean rb = gamepad1.right_bumper;
 
-             move.shoot(gamepad1.right_trigger != 0.0);
-             move.shoot(gamepad1.left_trigger  != 0.0);
+            move.shoot(gamepad1.right_trigger != 0.0);
+            move.shoot(gamepad1.left_trigger  != 0.0);
 
-            move.moveByArena(leftY, leftX, rightX, lb, rb);
-            move.claw(gamepad1.y, gamepad1.a, gamepad1.b, gamepad1.x);
+            move.move(leftY, leftX, rightX, lb, rb);
+            move.claw(gamepad1.dpad_down, gamepad1.y, gamepad1.a, gamepad1.b, gamepad1.x);
 
             telemetry.addData("Front Left Motor", String.format("%.2f", move.getFlForce()));
             telemetry.addData("Front Right Motor", String.format("%.2f", move.getFrForce()));
             telemetry.addData("Back Left Motor", String.format("%.2f", move.getBlForce()));
             telemetry.addData("Back Right Motor", String.format("%.2f", move.getBrForce()));
+            telemetry.addData("arm motor", String.format("%.2f", move.getArmEncoder()));
             telemetry.update();
         }
     }

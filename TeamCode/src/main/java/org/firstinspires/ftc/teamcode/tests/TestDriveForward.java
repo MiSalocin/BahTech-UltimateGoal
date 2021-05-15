@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.tests;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 //Program used to know if our robot is moving straigh or not
 
 @Autonomous(name = "TestingDriveBack", group = "Testes")
-public class TestingDriveForward extends LinearOpMode {
+public class TestDriveForward extends LinearOpMode {
 
     DcMotor FL = null;
     DcMotor BL = null;
