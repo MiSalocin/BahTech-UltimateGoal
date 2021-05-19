@@ -21,6 +21,9 @@ import java.util.List;
 @Autonomous(name ="MATflowCore", group = "official")
 public class MATflowCore extends LinearOpMode {
 
+    private final double[] force = new double[4];
+    private final double[] lastForce = new double[4];
+
     //Hardware variables
     ColorSensor colorSensor;
     DcMotor FL;
@@ -28,30 +31,26 @@ public class MATflowCore extends LinearOpMode {
     DcMotor BL;
     DcMotor BR;
     DcMotor armMotor;
+    DcMotor intake;
+    DcMotor shooterMotor;
     Servo clawServo;
+    Servo trigServo;
     BNO055IMU imu;
     final BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-    /* Pink HUB     = 1
-         Motor FL/0 = Yellow
-         Motor FR/1 = Blue
-         Motor BL/2 = White
-         Motor BR/3 = Green
 
-       Blue HUB      = 2
-         Arm motor/0 = Yellow
-         Int motor/2 = Blue
-         Sho motor/1 = White
-    */
 
     //Encoder constants
     final int TICKS_REV = 1120;
     final double GEAR_REDUCTION = 1.25;
     final double WHEEL_DIAMETER_CM = 10.16;
 
-    // defines the constant multipliers to the PD
-    final double kp = 1.5;
-    final double kd = 1;
-    final double k = 40;
+    // defines the constant multipliers to the PID
+    final double kp = 1;
+    final double ki = 0.4;
+    final double kd = 1.5;
+    final double k = 50;
+    double i = 0;
+    double angle = 0;
 
     //Detection variables
     private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";
@@ -70,8 +69,6 @@ public class MATflowCore extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        telemetry.addData(">", "Inicializando");
-        telemetry.update();
 
         List<Recognition> recognitions;
         double index;
@@ -85,7 +82,11 @@ public class MATflowCore extends LinearOpMode {
 
         //Wobble grabber
         armMotor = hardwareMap.get(DcMotor.class, "arm_motor");
+        shooterMotor = hardwareMap.get(DcMotor.class, "shooter_motor");
+        intake = hardwareMap.get(DcMotor.class, "intake_motor");
+
         clawServo = hardwareMap.get(Servo.class, "claw_servo");
+        trigServo = hardwareMap.get(Servo.class, "trig_servo");
 
         colorSensor = hardwareMap.get(ColorSensor.class, "sensor_color");
 
@@ -100,19 +101,22 @@ public class MATflowCore extends LinearOpMode {
         BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
 
-        moveClawAuto(1);
-        sleep(1000);
-        moveArmAuto(true);
 
+//        moveClawAuto(false);
+//        sleep(1200);
+//        moveArmAuto(true);
 
         //Initialize Vuforia and TensorFlow
         initVuforia();
         initTfod();
 
         //Show a message to press play
+        moveArmAuto(true);
+        sleep(1000);
+        moveClawAuto(false);
+
         telemetry.addData(">", "Press Play to start!");
         telemetry.update();
-
 
         waitForStart();
 
@@ -122,9 +126,9 @@ public class MATflowCore extends LinearOpMode {
 
         if (opModeIsActive()) {
             while (opModeIsActive()) {
-                sleep(3000);
+                sleep(2500);
                 recognitions = tfod.getRecognitions();
-
+                tfod.shutdown();
                 if (recognitions.size() == 0) {
                     telemetry.addData("TFLOW", "No object detected");
                     telemetry.addData("Zona Alvo", "A");
@@ -148,15 +152,9 @@ public class MATflowCore extends LinearOpMode {
                 telemetry.update();
             }
         }
-
-        if (tfod != null) {
-            tfod.shutdown();
-
-        }
-
     }
 
-    public void resetEncoder() {
+    private void resetEncoder() {
 
         FL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         FR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -171,34 +169,26 @@ public class MATflowCore extends LinearOpMode {
     }
 
     private void goWhite() {
-        double speed = 0.4;
+        double speed = 0.7;
         int whiteTape = 500; //Alpha
         int redTape = 110; //Based on RGB
-
-        double angle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-
+;
         double p;
-        double d;
-        double pd;
         double currentAngle;
         double error;
-        double lastError = 0;
-
 
         while (colorSensor.alpha() < whiteTape && colorSensor.red() < redTape) {
             currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
 
             error = angle - currentAngle;
 
-            p = error * kp;
-            d = (error - lastError) * kd;
-            lastError = error;
-            pd = (p + d) / k;
+            p = (error * kp) / k;
 
-            FL.setPower(speed-pd);
-            FR.setPower(speed+pd);
-            BL.setPower(speed-pd);
-            BR.setPower(speed+pd);
+            FL.setPower(speed-p);
+            FR.setPower(speed+p);
+            BL.setPower(speed-p);
+            BR.setPower(speed+p);
+
         }
         FL.setPower(0);
         BL.setPower(0);
@@ -212,112 +202,119 @@ public class MATflowCore extends LinearOpMode {
         goWhite();
         moveArmAuto(false);
         sleep(1200);
-        moveClawAuto(0);
-        sleep(1500);
+        moveClawAuto(true);
+        sleep(100);
         moveArmAuto(true);
-        sleep(1200);
-        moveClawAuto(1);
-        sleep(1000);
-        turn(0.5, false, 36, 12);
-        sleep(1000);
-
-        //Go to the 2nd one
-        movePD(-170, 0.5);
         sleep(500);
-        moveArmAuto(false);
-        moveClawAuto(0);
+        moveClawAuto(false);
         sleep(500);
-        movePD(10, 0.5);
-        moveClawAuto(1);
-        sleep(1000);
-        moveArmAuto(true);
 
-        //Go to the target zone with the 2nd wobble
-        movePD(190, 0.5);
-        moveArmAuto(false);
-        sleep(1000);
-        moveClawAuto(0);
-        sleep(1000);
-        moveArmAuto(false);
-        moveClawAuto(1);
+        //Go and align to the power shoot position
+        shooterMotor.setPower(0.68);
+        movePD(-45, 0.7);
+        movePDSide(70, 0.7, true);
+        sleep(500);
+        movePDSide(70, 0.7, true);
+        sleep(500);
+        shootPowerShoots(3);
+        turn(0.5,false,11,50);
+        goWhite();
+        sleep(5000);
 
     }
 
     private void goZoneB(){
+        tfod.shutdown();
+
+        //Align to the starter stack by strafing right
+        movePDSide(45, 0.6, true);
+        sleep(500);
+
+        //Get near of the stack
+        movePD(35, 0.4);
+        sleep(1500);
+        shootRing(2, 0.7);
+        sleep(1000);
+
+        //Turn on the intake and take the ring
+        intake.setPower(1);
+        movePD(40, 0.3);
+
+        //Align to the power shoot
+        intake.setPower(0);
+        sleep(500);
+        movePDSide(80, 0.6, true);
+        sleep(1000);
+        goWhite();
+
+//        movePD(55, 0.6);
+//        sleep(500);
+//        moveArmAuto(false);
+//        sleep(1000);
+//        moveClawAuto(true);
+//        sleep(1000);
+//        moveArmAuto(true);
+//        sleep(1000);
+//        moveClawAuto(false);
+//        movePD(-185, 0.7);
+//        sleep(1000);
+//        moveClawAuto(true);
+//        moveArmAuto(false);
+//        sleep(5000);
+
+
+        /*
+        movePD(30,0.5);
+        sleep(1500);
+
+        //Shoot three powerShoots
+        turn(0.6, true, 3, 30 );
+        sleep(1500);
+        turn(0.6, true, 3, 30 );
+        sleep(1500);
+        turn(0.6, false, 12, 45);
+        sleep(1500);
+
         //Delivery the 1st wobble goal
         goWhite();
-        turn(0.4, true, 35, 12);
-        sleep(500);
-        movePD(45, 0.4);
+        turn(0.6, true, 10, 40);
+        movePD(30, 0.6);
         moveArmAuto(false);
-        moveClawAuto(0);
-        sleep(1600);
-        moveArmAuto(true);
-        moveClawAuto(1);
-
-        //Drive to the second one
-        turn(0.5, false, 40, 12);
-        movePD(-70, 0.5);
-        moveClawAuto(0);
-        moveArmAuto(false);
-        sleep(1200);
-        turn(0.5, true, 9, 3);
-        sleep(1200);
-        //driveForward(0.3,0.3);
-        moveClawAuto(1);
-        sleep(500);
-
-        //Delivery the 2o one
-        goWhite();
-        sleep(500);
-        moveClawAuto(0);
+        sleep(1000);
+        moveClawAuto(true);
         sleep(1000);
         moveArmAuto(true);
-        moveClawAuto(1);
+        sleep(1000);
+        moveClawAuto(false);
+        sleep(5000);
+        */
     }
 
     private void goZoneC(){
+        tfod.shutdown();
         goWhite();
         movePD(75, 0.4);
         moveArmAuto(false);
         sleep(1300);
-        moveClawAuto(0);
+        moveClawAuto(true);
         sleep(1600);
         moveArmAuto(true);
-        moveClawAuto(1);
+        moveClawAuto(false);
 
-        //Drive to the second one
-        turn(0.5, false, 40, 12);
-        movePD(-110, 0.5);
-        moveClawAuto(0);
-        moveArmAuto(false);
-        sleep(1200);
-        turn(0.5, true, 9, 3);
-        sleep(1200);
-        //driveForward(0.3,0.3);
-        moveClawAuto(1);
-        sleep(500);
+        //Go shoot powershoots
 
-        //Delivery the 2o one
-        goWhite();
-        sleep(500);
-        //driveForward(0.5, 0.5);
-        moveClawAuto(0);
-        sleep(1000);
-        moveArmAuto(true);
-        moveClawAuto(1);
     }
 
     /*MOVEMENT METHODS*/
     // Move the robot using PD
-    private void movePD(double distance, double speed){
-        double angle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-        double currentAngle;
+    public void movePD(double distance, double speed){
+        double currentAngle = 0;
 
         // define the PD variables
         double p;
+        double i = 0;
         double d;
-        double pd = 0 ;
+        double pid = 0 ;
         double error;
         double lastError = 0;
 
@@ -351,25 +348,56 @@ public class MATflowCore extends LinearOpMode {
             error = angle - currentAngle;
 
             p = error * kp;
+            i += error * ki;
             d = (error - lastError) * kd;
+            pid = (p + i + d) / k;
+
+            telemetry.addData("PID VALUE", pid);
+
+            FL.setPower(speed - pid);
+            FR.setPower(speed + pid);
+            BL.setPower(speed - pid);
+            BR.setPower(speed + pid);
+
+            telemetry.addData("PID", FL.getPower());
+            telemetry.addData("P", p);
+            telemetry.addData("I", i);
+            telemetry.addData("D", d);
+
+            sleep(100);
             lastError = error;
-            pd = (p + d) / k;
-
-            if (distance < 0){ pd *= -1; }
-
-            telemetry.addData("PID VALUE", pd);
-
-            FL.setPower(speed - pd);
-            FR.setPower(speed + pd);
-            BL.setPower(speed - pd);
-            BR.setPower(speed + pd);
-
-            telemetry.addData("FL power", FL.getPower());
-            telemetry.addData("FR power", FR.getPower());
-            telemetry.addData("BL power", BL.getPower());
-            telemetry.addData("BR power", BR.getPower());
 
             telemetry.update();
+        }
+
+        FL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        FR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        while (Math.abs(angle-currentAngle)>0.7){
+            currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+
+            error = angle - currentAngle;
+            p = error * kp;
+            i += error * ki;
+            d = (error - lastError) * kd;
+            pid = (p + i + d) / k;
+
+            FL.setPower(- pid);
+            FR.setPower(+ pid);
+            BL.setPower(- pid);
+            BR.setPower(+ pid);
+
+            telemetry.addData("PID", pid);
+            telemetry.addData("P",p);
+            telemetry.addData("I",i);
+            telemetry.addData("D",d);
+            telemetry.update();
+
+            sleep(100);
+
+            lastError = error;
         }
         FL.setPower(0);
         FR.setPower(0);
@@ -377,10 +405,148 @@ public class MATflowCore extends LinearOpMode {
         BR.setPower(0);
     }
 
+    public void movePDSide(double distance, double speed, boolean isRight){
+        double currentAngle;
+        final double smoother = 0.03;
+        final double threshold = 1;
+
+        // define the PD variables
+        double p;
+        double i = 0;
+        double d;
+        double pid;
+        double error;
+        double lastError = 0;
+
+        // Convert the encoder values to centimeters
+        double circumference = Math.PI * WHEEL_DIAMETER_CM;
+        double rotation = (distance / circumference) / GEAR_REDUCTION;
+        int targetEncoder = (int)(rotation * TICKS_REV);
+
+        resetEncoder();
+
+        //This gets the position and makes the robot ready to move
+        if (isRight) {
+            FL.setTargetPosition(targetEncoder);
+            FR.setTargetPosition(-targetEncoder);
+            BR.setTargetPosition(targetEncoder);
+            BL.setTargetPosition(-targetEncoder);
+        }else {
+            FL.setTargetPosition(-targetEncoder);
+            FR.setTargetPosition(targetEncoder);
+            BR.setTargetPosition(-targetEncoder);
+            BL.setTargetPosition(targetEncoder);
+        }
+        FL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        FR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        BL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        BR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        FL.setPower(0.01);
+        FR.setPower(0.01);
+        BL.setPower(0.01);
+        BR.setPower(0.01);
+
+
+        while ( FL.isBusy() || FR.isBusy() || BL.isBusy() || BR.isBusy() ) {
+
+            force[0] = speed;
+            force[1] = speed;
+            force[2] = speed;
+            force[3] = speed;
+
+            if (Math.abs(lastForce[0] - force[0]) > smoother) {
+                if (lastForce[0] > force[0]) force[0] = lastForce[0] - smoother;
+                else force[0] = lastForce[0] + smoother;
+            }
+            if (Math.abs(lastForce[1] - force[1]) > smoother) {
+                if (lastForce[1] > force[1]) force[1] = lastForce[1] - smoother;
+                else force[1] = lastForce[1] + smoother;
+            }
+            if (Math.abs(lastForce[2] - force[2]) > smoother) {
+                if (lastForce[2] > force[2]) force[2] = lastForce[2] - smoother;
+                else force[2] = lastForce[2] + smoother;
+            }
+            if (Math.abs(lastForce[3] - force[3]) > smoother) {
+                if (lastForce[3] > force[3]) force[3] = lastForce[3] - smoother;
+                else force[3] = lastForce[3] + smoother;
+            }
+
+            // Save the used force in variables to get the difference
+            lastForce[0] = force[0];
+            lastForce[1] = force[1];
+            lastForce[2] = force[2];
+            lastForce[3] = force[3];
+
+            FL.setPower(force[0]);
+            FR.setPower(force[1]);
+            BL.setPower(force[2]);
+            BR.setPower(force[3]);
+
+            telemetry.addData("Moving to target", "");
+            telemetry.addData("FL", FL.getCurrentPosition());
+            telemetry.addData("FR", FR.getCurrentPosition());
+            telemetry.addData("BL", BL.getCurrentPosition());
+            telemetry.addData("BR", BR.getCurrentPosition());
+            telemetry.update();
+        }
+        lastForce[0] = 0;
+        lastForce[1] = 0;
+        lastForce[2] = 0;
+        lastForce[3] = 0;
+
+        force[0] = 0;
+        force[1] = 0;
+        force[2] = 0;
+        force[3] = 0;
+
+        FL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        FR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        BR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+
+        while (Math.abs(angle-currentAngle)>threshold){
+            currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+
+            error = angle - currentAngle;
+            p = error * kp;
+            i += error * ki;
+            d = (error - lastError) * kd;
+            pid = (p + i + d) / k;
+
+            FL.setPower(- pid);
+            FR.setPower(+ pid);
+            BL.setPower(- pid);
+            BR.setPower(+ pid);
+
+            telemetry.addData("PID", pid);
+            telemetry.addData("P",p);
+            telemetry.addData("I",i);
+            telemetry.addData("D",d);
+            telemetry.addData("",currentAngle + threshold < angle || currentAngle - threshold > angle);
+            telemetry.update();
+
+            sleep(100);
+
+            lastError = error;
+        }
+
+        // the PID in action
+        FL.setPower(0);
+        FR.setPower(0);
+        BL.setPower(0);
+        BR.setPower(0);
+
+        telemetry.clear();
+        telemetry.update();
+
+    }
+
     // Program used to precisely turn the robot
-    public void turn(double force, boolean right, double targetAngle, int threshold) {
-        double angle;
-        final double smoother = 60;
+    public void turn(double force, boolean right, double targetAngle, final double smoother) {
+        final int threshold = 10;
         double currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
         if (right) {
             angle = -targetAngle + currentAngle;
@@ -406,6 +572,7 @@ public class MATflowCore extends LinearOpMode {
                     FL.setPower(-(angle - currentAngle) / smoother);
                     BL.setPower(-(angle - currentAngle) / smoother);
                 }
+                telemetry.addData("angulo", angle);
             }
         } else {
             angle = targetAngle + currentAngle;
@@ -430,6 +597,7 @@ public class MATflowCore extends LinearOpMode {
                     FL.setPower((currentAngle - angle) / smoother);
                     BL.setPower((currentAngle - angle) / smoother);
                 }
+                telemetry.addData("angulo", angle);
             }
         }
         FR.setPower(0);
@@ -439,13 +607,16 @@ public class MATflowCore extends LinearOpMode {
     }
 
     // Move the robot's arm
-    private void moveArmAuto(boolean isUp ) {
+    public void moveArmAuto(boolean isUp ) {
 
-        final int up = 700;
-        final int down = -490;
-        final double force = 0.7;
+        final int up = 670;
+        final int down = -460;
+        final double force = 0.9;
+
+
 
         if (isUp) {
+
             armMotor.setTargetPosition(up);
             armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             armMotor.setPower(-force);
@@ -461,8 +632,37 @@ public class MATflowCore extends LinearOpMode {
     }
 
     // Open or close the arm's claw
-    private void moveClawAuto(int requiredPosition) {
-        clawServo.setPosition(requiredPosition);
+    public void moveClawAuto(boolean isOpen) {
+        if(isOpen) {
+            clawServo.setPosition(0);
+        }
+        if(!isOpen) {
+            clawServo.setPosition(1);
+        }
+    }
+
+    private void shootPowerShoots(int quantity) {
+        moveArmAuto(false);
+        for (int n = 1; n <= quantity; n++) {
+            trigServo.setPosition(0.2);
+            sleep(1500);
+            trigServo.setPosition(1);
+            sleep(1500);
+            turn(0.5, true, 4, 40);
+        }
+        shooterMotor.setPower(0);
+    }
+
+    private void shootRing(int quantity, double shooterPower) {
+        shooterMotor.setPower(shooterPower);
+
+        for (int n = 1 ; n <= quantity; n++) {
+            trigServo.setPosition(0.2);
+            sleep(500);
+            trigServo.setPosition(1);
+            sleep(500);
+        }
+        shooterMotor.setPower(0);
     }
 
     /*LIBRARY INITIALIZER METHODS*/
@@ -493,6 +693,25 @@ public class MATflowCore extends LinearOpMode {
         parameters.loggingTag = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         imu.initialize(parameters);
+    }
+
+    public double pid (double targetAngle, double currentAngle){
+        double error;
+        double p;
+        double d;
+        double pid;
+        double lastError = 500;
+
+        error = targetAngle - currentAngle;
+
+        p = error * kp;
+        i += error;
+        d = (error - lastError) * kd;
+        pid = (p + d) / k;
+
+        sleep(200);
+        lastError = error;
+        return pid;
     }
 
 }
