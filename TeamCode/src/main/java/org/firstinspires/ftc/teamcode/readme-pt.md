@@ -1,220 +1,301 @@
-# Programs #
-This is a list of our three main programam, their usage and methods
+# Programas #
+Esta é uma lista de nossos três programas principais, seu uso, métodos e inovações
 
 ## MMMovement ##
 ### My Mechanum: Movement ###
-It contains all the methods used to move the robot during the TeleOp and also in autonomous period.
-The methods are:
+Contém todos os métodos utilizados para movimentar o robô durante o período tele operado e autônomo.
+Os métodos são:
 
-**Methods used to define the hardware's configuration or some abstract actions**
-- **defHardware:** It receive the hardwareMap to map the robot's components in our program and in
-the robot configuration.
+**Métodos usados para definir a configuração do hardware ou algumas ações abstratas**
+
+- **defHardware** Recebe o HardwareMap para mapear os componentes do robô em nosso programa e na
+ configure robot.
 ``` java
 public void defHardware (HardwareMap hardwareMap)
 ```
-- **initIMU:** It receive hardwareMap and create the IMU configuration.
+- **initIMU:** Recebe hardwareMap e cria a configuração IMU.
 ``` java
 public void initIMU (HardwareMap hardwareMap)
 ```
-- **resetEncoder:** It is self-explanatory
+- **resetEncoder:** Reseta o encoder dos motores.
 ``` java
 public void resetEncoder()
 ```
 
-**Methods used to move the robot**
-- **turn:** It receive the motors' force, the direction (left or right), the angle and the
- [smoother](#robot-mapping) value.
+**Métodos usados para mover o robô**
+
+- **turn:** recebe a força dos motores, a direção (esquerda ou direita), o ângulo e a contante
+ [smoother](#mapeamento-do-robô).
 ``` java
 public void turn(double force, boolean isRight, double targetAngle, final double smoother)
 ```
-- **move:** It receive the gamepad controls to move the robot using the IMU
+- **move:** recebe os controles do gamepad para mover o robô usando o IMU
 ``` java
 public void move(double leftY, double leftX, double rightX, boolean slower, boolean faster)
 ```
-- **setPd:** It receive the gamepad control and use this to define the angle that the robot should
- be facing
-``` java
-public void setPd(double rightX)
-```
-- **intakeForce:** It receive the target force to the intake
+- **intakeForce:** Recebe a força objetivo para ativar o intake
 ``` java
 public void intakeForce(double force)
 ```
-- **shoot:** It receive the gamepad key used to shot an ring into the High Goal
+- **shoot:** Recebe o botão do gamepad usado para atirar um anel para o gol alto
 ``` java
 public void shoot(boolean trigger)
 ```
-- **powerShot:** It receive the gamepad key used to shot an ring into the Power Shot
+- **powerShot:** Recebe o botão do gamepad usado para disparar um anel no Power Shot
 ``` java
 public void powerShot(boolean trigger)
 ```
-- **claw:** It receive the gamepad keys used to move the claw
+- **claw:** Recebe as teclas do gamepad usadas para mover a garra
 ``` java
 public void claw(boolean halfDown, boolean totalUp, boolean totalDown, boolean open, boolean close)
 ```
 
 ## MMCore ##
 ### My Mechanum: Core ###
-The main TeleOp program, it contains the OpMode and the gamepad controls that we will use.
+O programa TeleOp principal, contém um modo de operação linear e os controles do gamepad que usaremos.
 
-First it will define the Hardware and initialize the IMU, after this it will start a loop that will
- use the methods created in MMMovement and the gamepad to move the robot
+Primeiro ele irá definir o Hardware e inicializar o IMU, depois disso irá iniciar um loop que irá
+ usar os métodos criados no MMMovement e no gamepad para mover o robô
 
-This class has no methods
+Essa classe não possui métodos
 
 ## MATflowCore ##
 ### My Autonomous: Tensor Flow Core ###
 
-The main autonomous program, it contains an linear OpMode and some methods used to drive the robot.
- The methods are: 
+O principal programa autônomo, contém um modo de operação linear e alguns métodos usados para conduzir o robô.
+ Os métodos são:
 
-- **goWhite:** it moves the robot forward until it detects a white tape in the floor
+- **goWhite:** move o robô para frente até detectar uma fita branca no chão
 ``` java
 private void goWhite()
 ```
-- **goZoneA:** it contais the instruction to move the robot when there are no rings in front of it 
+- **goZoneA:** contém as instruções para mover o robô quando não há anéis na frente dele 
 ``` java
 private void goZoneA()
 ```
-- **goZoneB:** it contais the instruction to move the robot when there are one rings in front of it
+- **goZoneB:** contém as instruções para mover o robô quando há um anél na frente dele
 ``` java
 private void goZoneB()
 ```
-- **goZoneC:** it contais the instruction to move the robot when there are four rings in front of it
+- **goZoneC:** contém as instruções para mover o robô quando há quatro anéis na frente dele
 ``` java
 private void goZoneC()
 ```
-- **initVuforia:** Initialize the vuforia and the webcam
+- **initVuforia:** Inicializa o vuforia e a webcam
 ``` java
 private void initVuforia()
 ```
-- **initTfod:** Initialize the TensorFlow, library that detect the objects using vuforia 
+- **initTfod:** Inicializa o TensorFlow, biblioteca que detecta objetos usando o vuforia 
 ``` java
 private void initTfod()
 ```
 
-## Smoother ##
+### computer-vision ###
+Por meio dos reconhecimentos do Tensor Flow, podemos reconhecer se há ou não algum anel na
+pilha inicial. Então, podemos nos mover para a zona alvo de acordo com as regras do jogo.
+- 0 anéis detectados = Zona A
+- 1 anel detectado   = Zona B
+- 4 anéis detectados = Zona C
 
-Different than everything else, this is a part of the program that appears in many movement methods,
- it is responsible to make our robot slow down after an movement, making it more precise.
- It is extremely useful and cam be implemented in two ways:
-- **Simpler:**
-To explain the way it works, i will use the example present in our *turn* method.
-
-The smoother value is with the subtraction between the target angle of our turn with the current
-robot's angle. The result will be divided with the Smoother constant that, in most cases, will be
-defined inside the method.
+Esta é a parte do programa que é responsável por reconhecer a quantidade de aneis detectados pelo
+nosso robô e mostrá-lo na tela do Driver station. 
 
 ``` java
-(angle - currentAngle) / smoother
+if (opModeIsActive()) {
+
+    while (opModeIsActive()) {
+        sleep(1500);
+        recognitions = tfod.getRecognitions();
+        tfod.shutdown();
+
+        if (recognitions.size() == 0) {
+            telemetry.addData("Target Zone", "A");
+        } else {
+
+            for (Recognition recognition_item : recognitions) {
+                recognition = recognition_item;
+            }
+
+            if (recognition.getLabel().equals("Single")) {
+                telemetry.addData("Target Zone", "B");
+            } else if (recognition.getLabel().equals("Quad")) {
+                telemetry.addData("Target Zone", "C");
+            }
+
+        }
+        telemetry.update();
+    }
+}
 ```
 
-With the smoother value on, we can use it with the maximum desired force, let's pretend that it's
-0.5, we can use an if-else to define the motors force. If the desired force is smaller, we use it,
-if isn't, we use the smoother calculation.
+## Smoother ##
+
+Diferente de tudo, esta é uma parte do programa que aparece em muitos métodos de movimento,
+ é responsável por fazer nosso robô desacelerar após um movimento, tornando-o mais preciso.
+ ele é extremamente útil e pode ser implementado de duas maneiras:
+- **Simples:**
+Para explicar como funciona, usarei o exemplo presente em nosso método * turn *.
+
+O valor do * smoother * é dado com a subtração entre o ângulo alvo de nosso giro com o atual
+ângulo do robô. O resultado será dividido com a constante Smoother que, na maioria dos casos, será
+definido dentro do método.
+
+``` java
+(anguloObjetivo - anguloAtual) / smoother
+```
+
+O valor * smoother * pode ser usado com a força máxima desejada, vamos imaginar que é
+0,5. Podemos usar um if-else para definir a força do motor. Se a força desejada for menor, nós a usamos,
+se não for, usamos o cálculo do * smoother *.
 
 ``` java 
-SmootherCalc = (angle - currentAngle) / smoother; 
+smootherCalc = (anguloObjetivo - anguloAtual) / smoother; 
 
-if (SmootherCalc > desiredForce) {
-    movementMotor.setPower(desiredForce)
-} else{
+if (SmootherCalc > forcaDesejada) {
+    movementMotor.setPower(forcaDesejada)
+} else {
     movementMotor.setPower(SmootherCalc)
 }
 ``` 
 
-- **Harder:**
-This way is only used in the TeleOp movement method and is harder to implement, but I will try to
-simplify it in here
+- **Complexo:**
+Esta forma só é usada no método de movimento no tele operado e é mais difícil de implementar, mas vou tentar
+simplificar aqui
 
-To implement this, we will need to have:
-1.  The current motor force
-1.  The last updated motor force
-1.  The smoother constant
+Para implementar isso, precisaremos ter:
+1. A força do motor atual
+1. A última força do motor
+1. A constante * smoother *
 
-With this, we will compare if the absolute value of the difference between the current and last
-force is bigger than the smoother constant
+Com isso, vamos comparar se o valor absoluto da diferença entre a atual e última força do motor
+é maior do que a constante * smoother *
 
 ``` java
-Math.abs( lastForce - currentForce ) > smoother
+Math.abs( ultimaForca - forcaAtual ) > smoother
 ``` 
 
-if it isn't we can directly define the force to the motors, but if isn't, we will need to change the
-value with some logic
+se não for, podemos definir diretamente a força para os motores, mas se for, teremos que mudar o
+valor usando lógica
 
-if the last force was bigger than the current force, we will use it less the constant smoother as
-the motor force, else, we will use the last force plus the smoother as the force
+se a última força foi maior do que a força atual, vamos definir a força do motor como ela menos
+a constante * smooother *, caso contrário, usaremos a última força mais a constante
 
 ``` java
-if (Math.abs(lastForce - currentForce) > smoother) {
-    if (lastForce > currentForce) {
-        movementMotor.setPower(lastForce - smoother)
+if (Math.abs( ultimaForca - forcaAtual ) > smoother) {
+    if (ultimaForca > forcaAtual) {
+        movementMotor.setPower(ultimaForca - smoother)
     } else {
-        movementMotor.setPower(lastForce + smoother)
+        movementMotor.setPower(ultimaForca + smoother)
     }
 } else {
-    movementMotor.setPower(currentForce)
+    movementMotor.setPower(forcaAtual)
 }
 ``` 
 
 ## PID ##
-PID is an abbreviation
- 
- 
- 
-# Robot mapping #
-Robot Mapping help us with cable management, it is used to avoid unnecessary changes in the cables
- and the complications that come with it.
+PID é uma abreviação para proporcional-integral-derivada e é usado para previnir erros que podem
+acontecer durante o movimento. Para o PID nós usamos o valor angular do IMU. Os componentes do PID
+são:
 
-We had put some colorful tags in our robot's cables to help us identifying it in an easier way.
-## HUB 1 / Blue ##
-### Motors ###
-| Port | Name          | Color  |
-|------|---------------|--------|
-|  0   | arm_motor     | Yellow |
-|  1   | intake_motor  | Blue   |
-|  2   | shooter_motor | White  |
+- ** Proporcional: ** É responsável por criar uma variável que pega a diferença entre o ângulo
+ atual e o objetivo. Esse valoe é multiplicado por uma contante kP e somado com o
+força de movimento desejada
+``` java
+final double kP = 1;
+
+while(pid.isActive){
+    erro = angulo - anguloAtual;
+    p = erro * kp;
+}
+```
+- ** Integral: ** Sua responsabilidade é obter todos os valores e somar dos erros. Ele é
+especialmente útil quando nosso alvo é diferente de zero (a proporcional não será capaz de resolver
+isso sozinha) ou se a força que o proporcional gera não é suficiente. O valor integral é
+multiplicado por kI
+``` java
+final double kP = 1;
+final double kI = 0.4;
+             
+while(pid.isActive){
+    erro = angulo - anguloAtual;
+    p = erro * kp;
+    i += erro * kI;    
+}
+```
+- ** Derivada: ** É responsabilidade dela evitar que a integral chegue a um valor enorme, isso pode
+acontecer quando o erro é igual a zero. Para calcular isso, precisaremos salvar o último erro e
+subtrair com o erro atual, o resultado será multiplicado por kD
+``` java
+final double kP = 1;
+final double kI = 0.4;
+final double kD = 1.5;
+double ultimoErro;
+
+while (pid.isActive){
+    erro = angulo - anguloAtual;
+    p = erro * kp;
+    i += erro * kI;    
+    d += (ultimoErro - erro) * kd;
+}
+```
+
+Pegamos os três valores que obtivemos antes e os somamos para obter um PID totalmente funcional.
+Essa lógica está em todo o nosso código, especialmente no período autônomo. Você pode vê-lo
+funcionando nos métodos movePID, MovePIDSide e goToWhite.
+ 
+# Mapeamento do robô #
+Mapear o robô nos ajuda com o gerenciamento de cabos, elaé usada para evitar mudanlas desnecessárias
+ de cabos e as complicações que isso causa.
+
+Nós colocamos algumas fitas coloridas nos cabos do nosso robô para nos ajudar a identificá-los.
+## HUB 1 / Azul ##
+### Motores ###
+| Porta | Nome          | Cor     |
+|-------|---------------|---------|
+|  0    | arm_motor     | Amarelo |
+|  1    | intake_motor  | Azul    |
+|  2    | shooter_motor | Branco  |
 
 ### Servos ###
-| Port | Name          |
-|------|---------------|
-|  0   | claw_servo    |
-|  1   | trig_servo    |
+| Porta | Nome          |
+|-------|---------------|
+|  0    | claw_servo    |
+|  1    | trig_servo    |
 
 ### I2C 0 ###
-| Port | Name          |
-|------|---------------|
-|  0   | imu           |
-|  1   | sensor_color  | 
+| Porta | Nome          |
+|-------|---------------|
+|  0    | imu           |
+|  1    | sensor_color  | 
 
 ## HUB 2 / Pink tag ##
 ### Motors ###
-| Port | Name          | Color   |
-|------|---------------|---------|
-|  0   | FL            | Yellow  |
-|  1   | FR            | Blue    |
-|  2   | BL            | White   |
-|  3   | BR            | Green   |
+| Porta | Nome          | Cor     |
+|------|----------------|---------|
+|  0   | FL             | Amarelo |
+|  1   | FR             | Azul    |
+|  2   | BL             | Branco  |
+|  3   | BR             | Verde   |
 
 # Gamepad #
-We configured only one gamepad, we had some brainstorms and decided that only one pilot would be
-better than two.
+Configuramos apenas um gamepad, tivemos alguns brainstorms e decidimos que apenas um piloto seria
+melhor do que dois.
 
-the gamepad mapping is:
+o mapeamento do gamepad é:
 
-| Button | Function          |
-|--------|-------------------|
-| X      | Open the claw     |
-| Y      | Lift up the arm   |
-| A      | Lift down the arm |
-| B      | Close the claw    |
-| Right bumper   | Speed up the robot |
-| Right trigger  | Shoot the rings (Power Shot) |
-| Left trigger   | Shoot the rings (High Goal)  |
-| DPad up        | Start/stop the intake        |
-| DPad down      | Lift down the arm half way   |
-| Right joystick | Control the robot's turns    |
-| Left joystick  | Control the robot's movement |
+| Botão  | Função          |
+|--------|-----------------|
+| X      | Abre a garra    |
+| Y      | Levanta o braço |
+| A      | Abaixa o braço  |
+| B      | Fecha a garra   |
+| RB     | Aumenta a velocidade do robô            |
+| RT     | Atira um anel (Power Shot)              |
+| RB     | Atira um anel (Gol alto)                |
+| Dpad para cima    | Inicia/para o intake         |
+| DPad para baixo   | Abaixa a garra pela metade   |
+| Joystick direito  | Controla o giro do robô      |
+| Joystick esquerdo | Controla o movimento do robô |
 
 # References #
 

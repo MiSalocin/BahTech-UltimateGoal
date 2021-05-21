@@ -15,15 +15,6 @@ public class MMMovement {
     private final double[] lastForce = new double[4];
     private final ElapsedTime time = new ElapsedTime();
 
-    private double p = 1;
-    double currentX = 1;
-    double currentY = 1;
-    double targetAngle = 0;
-    double targetX = 1;
-    double targetY = 1;
-    double error = 1;
-    final double k = 1;
-
     // values used in the movement
     private double internal;
     private double external;
@@ -105,13 +96,13 @@ public class MMMovement {
                 if (angle - currentAngle > 180)
                     currentAngle += 360;
                 if (force < smoother(angle, currentAngle, smoother)) {
-                    FR.setPower(force);
-                    BR.setPower(force);
+                    FR.setPower( force);
+                    BR.setPower( force);
                     FL.setPower(-force);
                     BL.setPower(-force);
                 } else {
-                    FR.setPower(smoother(angle, currentAngle, smoother));
-                    BR.setPower(smoother(angle, currentAngle, smoother));
+                    FR.setPower( smoother(angle, currentAngle, smoother));
+                    BR.setPower( smoother(angle, currentAngle, smoother));
                     FL.setPower(-smoother(angle, currentAngle, smoother));
                     BL.setPower(-smoother(angle, currentAngle, smoother));
                 }
@@ -145,7 +136,7 @@ public class MMMovement {
 
     /*METHODS USED IN THE TELE-OPERATED PERIOD*/
     // Move the robot
-    public void move(double leftY, double leftX, boolean slower, boolean faster) {
+    public void move(double leftY, double leftX, double rightX, boolean slower, boolean faster) {
 
         // Create a variable using the IMU
         double angle = getCurrentDegree();
@@ -172,28 +163,28 @@ public class MMMovement {
         }
 
         // Add to the vector the forces of the gamepad and the angle variables
-        force[0] = leftY * internal + leftX * external + p;
-        force[1] = leftY * external - leftX * internal + p;
-        force[2] = leftY * external - leftX * internal - p;
-        force[3] = leftY * internal + leftX * external - p;
+        force[0] = leftY * internal + leftX * external + rightX;
+        force[1] = leftY * external - leftX * internal + rightX;
+        force[2] = leftY * external - leftX * internal - rightX;
+        force[3] = leftY * internal + leftX * external - rightX;
 
         // See if the difference of the last force and the current one is bigger than the
         // smoother value, if it is, it will change gradually to not damage the motors
         if (Math.abs(lastForce[0] - force[0]) > smoother) {
             if (lastForce[0] > force[0]) force[0] = lastForce[0] - smoother;
-            else force[0] = lastForce[0] + smoother;
+            else                         force[0] = lastForce[0] + smoother;
         }
         if (Math.abs(lastForce[1] - force[1]) > smoother) {
             if (lastForce[1] > force[1]) force[1] = lastForce[1] - smoother;
-            else force[1] = lastForce[1] + smoother;
+            else                         force[1] = lastForce[1] + smoother;
         }
         if (Math.abs(lastForce[2] - force[2]) > smoother) {
             if (lastForce[2] > force[2]) force[2] = lastForce[2] - smoother;
-            else force[2] = lastForce[2] + smoother;
+            else                         force[2] = lastForce[2] + smoother;
         }
         if (Math.abs(lastForce[3] - force[3]) > smoother) {
             if (lastForce[3] > force[3]) force[3] = lastForce[3] - smoother;
-            else force[3] = lastForce[3] + smoother;
+            else                         force[3] = lastForce[3] + smoother;
         }
 
         // Save the used force in variables to get the difference
@@ -225,107 +216,6 @@ public class MMMovement {
         }
     }
 
-    // Define PD variables for the teleOp movement
-
-    public void setPd(double rightX, boolean isActive) {
-
-//        double currentAngle = getCurrentDegree();
-//
-//        if (rightX > 0.01) {
-//            if (targetAngle > -179.9) {
-//                targetAngle -= rightX;
-//            } else {
-//                targetAngle += 359;
-//            }
-//        }
-//        else if (rightX < -0.01) {
-//            if (targetAngle < 179.9) {
-//                targetAngle -= rightX;
-//            } else {
-//                targetAngle -= 359;
-//            }
-//        }
-//
-//
-//        if (0 < currentAngle && currentAngle <= 90) {
-//            currentX = -(currentAngle / 45 - 1);
-//            currentY = 1;
-//        }
-//        else if (90 < currentAngle && currentAngle <= 180) {
-//            currentX = -1;
-//            currentY = -((currentAngle - 90) / 45 - 1);
-//        }
-//        else if (-90 < currentAngle && currentAngle <= 0) {
-//            currentX = 1;
-//            currentY = currentAngle / 45 + 1;
-//        }
-//        else if (-180 < currentAngle && currentAngle <= 90) {
-//            currentX = (currentAngle + 90) / 45 + 1;
-//            currentY = -1;
-//        }
-//
-//        if (0 < targetAngle && targetAngle <= 90) {
-//            targetX = -(targetAngle / 45 - 1);
-//            targetY = 1;
-//        }
-//        else if (90 < targetAngle && targetAngle <= 180) {
-//            targetX = -1;
-//            targetY = -((targetAngle - 90) / 45 - 1);
-//        }
-//        else if (-90 < targetAngle && targetAngle <= 0) {
-//            targetX = 1;
-//            targetY = targetAngle / 45 + 1;
-//        }
-//        else if (-180 < targetAngle && targetAngle <= 90) {
-//            targetX = (targetAngle + 90) / 45 + 1;
-//            targetY = -1;
-//        }
-//
-//        if (targetX == 1) {
-//            if (currentX == 1) {
-//                error = -(targetY - currentY);
-//            } else if (currentY == 1) {
-//                error = 2;
-//            } else if (currentY == -1){
-//                error = -2;
-//            }
-//        }
-//        else if (targetX == -1){
-//            if (currentX == -1){
-//                error = targetY - currentY;
-//            } else if (currentY == 1) {
-//                error = -2;
-//            } else if (currentY == -1){
-//                error = 2;
-//            }
-//        }
-//        else if (targetY == 1){
-//            if (currentY == 1){
-//                error = targetX - currentX;
-//            } else if (currentX == 1) {
-//                error = -2;
-//            } else if (currentX == -1){
-//                error = 2;
-//            }
-//        }
-//        else if (targetY == -1){
-//            if (currentY == -1){
-//                error = - ( targetX - currentX);
-//            } else if (currentX == 1) {
-//                error = 2;
-//            } else if (currentX == -1){
-//                error = -2;
-//            }
-//        }
-//
-//        final double k = 4;
-
-        if (isActive)
-            p = error * k;
-        else
-            p = rightX;
-    }
-
     // Define the intake force
     public void intakeForce(double force) { intake.setPower(force); }
 
@@ -333,10 +223,10 @@ public class MMMovement {
     public void shoot(boolean trigger)  {
 
         // Start the shooter motor
-        shooterMotor.setPower(0.7);
+        //shooterMotor.setPower(-0.7);
 
         // Pull the trigger if a defined button is pressed
-        if (trigger) {
+        if (trigger && getArmEncoder()< -100) {
             shooterServo.setPosition(0.2);
         } else {
             shooterServo.setPosition(1);
@@ -345,8 +235,15 @@ public class MMMovement {
 
     // Shoot the rings in the power shot
     public void powerShot(boolean trigger)  {
-        shooterMotor.setPower(-0.8);
+        shooterMotor.setPower(-1);
+
         if (trigger) {
+            armMotor.setTargetPosition(-300);
+            armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            armMotor.setPower(0.5);
+        }
+
+        if (trigger && getArmEncoder()< -0) {
             shooterServo.setPosition(0);
         } else {
             shooterServo.setPosition(0.3);
@@ -402,7 +299,6 @@ public class MMMovement {
     public double getBlForce(){ return BL.getPower(); }
     public double getBrForce(){ return BR.getPower(); }
     public double getIntakeForce(){ return intake.getPower(); }
-    public double getArmEncoder() { return armMotor.getCurrentPosition(); }
+    private double getArmEncoder() { return armMotor.getCurrentPosition(); }
     private double getCurrentDegree() {return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;}
-    private double getCurrentRadians() {return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;}
 }

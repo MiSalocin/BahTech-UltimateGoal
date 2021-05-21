@@ -42,7 +42,10 @@ public class MATflowCore extends LinearOpMode {
     //Encoder constants
     final int TICKS_REV = 1120;
     final double GEAR_REDUCTION = 1.25;
-    final double WHEEL_DIAMETER_CM = 10.16;
+    final double WHEEL_CIRCUMFERENCE_CM = Math.PI*10.16;
+
+    // double rotation = (distance / circumference) / GEAR_REDUCTION;
+    // int targetEncoder = (int)(rotation * TICKS_REV);
 
     // defines the constant multipliers to the PID
     final double kp = 1;
@@ -126,7 +129,7 @@ public class MATflowCore extends LinearOpMode {
 
         if (opModeIsActive()) {
             while (opModeIsActive()) {
-                sleep(2500);
+                sleep(1500);
                 recognitions = tfod.getRecognitions();
                 tfod.shutdown();
                 if (recognitions.size() == 0) {
@@ -172,7 +175,6 @@ public class MATflowCore extends LinearOpMode {
         double speed = 0.7;
         int whiteTape = 500; //Alpha
         int redTape = 110; //Based on RGB
-;
         double p;
         double currentAngle;
         double error;
@@ -188,8 +190,8 @@ public class MATflowCore extends LinearOpMode {
             FR.setPower(speed+p);
             BL.setPower(speed-p);
             BR.setPower(speed+p);
-
         }
+
         FL.setPower(0);
         BL.setPower(0);
         FR.setPower(0);
@@ -211,10 +213,10 @@ public class MATflowCore extends LinearOpMode {
 
         //Go and align to the power shoot position
         shooterMotor.setPower(0.68);
-        movePD(-45, 0.7);
-        movePDSide(70, 0.7, true);
+        movePID(-45, 0.7);
+        movePIDSide(70, 0.7, true);
         sleep(500);
-        movePDSide(70, 0.7, true);
+        movePIDSide(70, 0.7, true);
         sleep(500);
         shootPowerShoots(3);
         turn(0.5,false,11,50);
@@ -227,23 +229,23 @@ public class MATflowCore extends LinearOpMode {
         tfod.shutdown();
 
         //Align to the starter stack by strafing right
-        movePDSide(45, 0.6, true);
+        movePIDSide(45, 0.6, true);
         sleep(500);
 
         //Get near of the stack
-        movePD(35, 0.4);
+        movePID(35, 0.4);
         sleep(1500);
         shootRing(2, 0.7);
         sleep(1000);
 
         //Turn on the intake and take the ring
         intake.setPower(1);
-        movePD(40, 0.3);
+        movePID(40, 0.3);
 
         //Align to the power shoot
         intake.setPower(0);
         sleep(500);
-        movePDSide(80, 0.6, true);
+        movePIDSide(80, 0.6, true);
         sleep(1000);
         goWhite();
 
@@ -293,7 +295,7 @@ public class MATflowCore extends LinearOpMode {
     private void goZoneC(){
         tfod.shutdown();
         goWhite();
-        movePD(75, 0.4);
+        movePID(75, 0.4);
         moveArmAuto(false);
         sleep(1300);
         moveClawAuto(true);
@@ -307,7 +309,7 @@ public class MATflowCore extends LinearOpMode {
 
     /*MOVEMENT METHODS*/
     // Move the robot using PD
-    public void movePD(double distance, double speed){
+    public void movePID(double distance, double speed){
         double currentAngle = 0;
 
         // define the PD variables
@@ -319,8 +321,7 @@ public class MATflowCore extends LinearOpMode {
         double lastError = 0;
 
         // Convert the encoder values to centimeters
-        double circumference = Math.PI * WHEEL_DIAMETER_CM;
-        double rotation = (distance / circumference) / GEAR_REDUCTION;
+        double rotation = (distance / WHEEL_CIRCUMFERENCE_CM) / GEAR_REDUCTION;
         int targetEncoder = (int)(rotation * TICKS_REV);
 
         resetEncoder();
@@ -405,7 +406,7 @@ public class MATflowCore extends LinearOpMode {
         BR.setPower(0);
     }
 
-    public void movePDSide(double distance, double speed, boolean isRight){
+    public void movePIDSide(double distance, double speed, boolean isRight){
         double currentAngle;
         final double smoother = 0.03;
         final double threshold = 1;
@@ -419,8 +420,7 @@ public class MATflowCore extends LinearOpMode {
         double lastError = 0;
 
         // Convert the encoder values to centimeters
-        double circumference = Math.PI * WHEEL_DIAMETER_CM;
-        double rotation = (distance / circumference) / GEAR_REDUCTION;
+        double rotation = (distance / WHEEL_CIRCUMFERENCE_CM) / GEAR_REDUCTION;
         int targetEncoder = (int)(rotation * TICKS_REV);
 
         resetEncoder();
@@ -693,25 +693,6 @@ public class MATflowCore extends LinearOpMode {
         parameters.loggingTag = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         imu.initialize(parameters);
-    }
-
-    public double pid (double targetAngle, double currentAngle){
-        double error;
-        double p;
-        double d;
-        double pid;
-        double lastError = 500;
-
-        error = targetAngle - currentAngle;
-
-        p = error * kp;
-        i += error;
-        d = (error - lastError) * kd;
-        pid = (p + d) / k;
-
-        sleep(200);
-        lastError = error;
-        return pid;
     }
 
 }

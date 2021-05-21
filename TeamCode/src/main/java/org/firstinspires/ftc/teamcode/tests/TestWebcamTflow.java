@@ -42,8 +42,8 @@ import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
 import java.util.List;
 
-
-@Autonomous(name = "TestingWebcamTflow", group = "Tflow")
+@Disabled
+@TeleOp(name = "TestWebcamTflow", group = "Tests")
 
 public class TestWebcamTflow extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "UltimateGoal.tflite";

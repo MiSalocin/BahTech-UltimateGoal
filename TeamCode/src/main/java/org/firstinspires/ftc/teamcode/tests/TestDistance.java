@@ -1,14 +1,15 @@
 package org.firstinspires.ftc.teamcode.tests;
 
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-
-@TeleOp(name = "Test Distance", group = "BahTech")
+@Disabled
+@TeleOp(name = "TestDistance", group = "Test")
 public class TestDistance extends LinearOpMode{
 
     DistanceSensor sensorDistance;
@@ -20,7 +21,6 @@ public class TestDistance extends LinearOpMode{
         waitForStart();
         while(opModeIsActive()){
             telemetry.addData("DISTANCE IN CM: ", sensorDistance.getDistance(DistanceUnit.CM));
-            telemetry.update();
         }
     }
 }

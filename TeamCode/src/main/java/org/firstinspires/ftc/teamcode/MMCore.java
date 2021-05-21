@@ -47,18 +47,15 @@ public class MMCore extends LinearOpMode {
             boolean rb = gamepad1.right_bumper;
 
             move.shoot(gamepad1.right_trigger != 0.0);
-            move.shoot(gamepad1.left_trigger  != 0.0);
+            move.powerShot(gamepad1.left_trigger  != 0.0);
 
-            move.setPd(rightX, false);
-
-            move.move(leftY, leftX, lb, rb);
+            move.move(leftY, leftX, rightX, lb, rb);
             move.claw(gamepad1.dpad_down, gamepad1.y, gamepad1.a, gamepad1.b, gamepad1.x);
 
             telemetry.addData("Front Left Motor",  String.format("%.2f", move.getFlForce()));
             telemetry.addData("Front Right Motor", String.format("%.2f", move.getFrForce()));
             telemetry.addData("Back Left Motor",   String.format("%.2f", move.getBlForce()));
             telemetry.addData("Back Right Motor",  String.format("%.2f", move.getBrForce()));
-            telemetry.addData("arm motor",         String.format("%.2f", move.getArmEncoder()));
             telemetry.update();
         }
     }

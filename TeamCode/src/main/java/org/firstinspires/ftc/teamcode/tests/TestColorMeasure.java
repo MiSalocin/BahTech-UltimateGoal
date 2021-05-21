@@ -40,7 +40,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
 // Program used to measure the color values
-@Autonomous(name = "TestingColorMeasure", group = "Testes")
+@Disabled
+@TeleOp(name = "TestColorMeasure", group = "Test")
 public class TestColorMeasure extends LinearOpMode {
 
   ColorSensor colorSensor;    // Hardware Device Object
