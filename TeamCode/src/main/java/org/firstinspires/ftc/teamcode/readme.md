@@ -196,7 +196,7 @@ PID is an abbreviation of proportional-integral-derivative and it is used to pre
 can happen during the movement. We use it with the angular sensors integrated in the IMU. The PID's
 components are:
 
-- ** Proportional: ** Its responsibility to create an variable that get the difference between the
+- **Proportional:** Its responsibility to create an variable that get the difference between the
 current angle and target angle. This value is multiplied by a constant kP and summed with the
 target movement force
 ``` java
@@ -207,7 +207,7 @@ while(pid.isActive){
     p = error * kp;
 }
 ```
-- ** Integral: ** Its responsibility to get all the error values and sum. It is especially useful
+- **Integral:** Its responsibility to get all the error values and sum. It is especially useful
 when our target is different than zero (the proportional will not be able to solve this alone) or if the
 force that the proportional gives is not enough. The integral value is multiplied by kI
 ``` java
@@ -220,7 +220,7 @@ while(pid.isActive){
     i += error * kI;    
 }
 ```
-- ** Derivative: ** Its responsibility to avoid the integral to get to an enormous value, this can
+- **Derivative:** Its responsibility to avoid the integral to get to an enormous value, this can
 happen when the error is equals to zero. To calculate this we will need to save the last error and
 subtract it with the current error, the result will be multiplied by kD
 ``` java
