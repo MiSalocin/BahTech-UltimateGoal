@@ -197,7 +197,7 @@ PID é uma abreviação para proporcional-integral-derivada e é usado para prev
 acontecer durante o movimento. Para o PID nós usamos o valor angular do IMU. Os componentes do PID
 são:
 
-- ** Proporcional: ** É responsável por criar uma variável que pega a diferença entre o ângulo
+- **Proporcional:** É responsável por criar uma variável que pega a diferença entre o ângulo
  atual e o objetivo. Esse valoe é multiplicado por uma contante kP e somado com o
 força de movimento desejada
 ``` java
@@ -208,7 +208,7 @@ while(pid.isActive){
     p = erro * kp;
 }
 ```
-- ** Integral: ** Sua responsabilidade é obter todos os valores e somar dos erros. Ele é
+- **Integral:** Sua responsabilidade é obter todos os valores e somar dos erros. Ele é
 especialmente útil quando nosso alvo é diferente de zero (a proporcional não será capaz de resolver
 isso sozinha) ou se a força que o proporcional gera não é suficiente. O valor integral é
 multiplicado por kI
@@ -222,7 +222,7 @@ while(pid.isActive){
     i += erro * kI;    
 }
 ```
-- ** Derivada: ** É responsabilidade dela evitar que a integral chegue a um valor enorme, isso pode
+- **Derivada:** É responsabilidade dela evitar que a integral chegue a um valor enorme, isso pode
 acontecer quando o erro é igual a zero. Para calcular isso, precisaremos salvar o último erro e
 subtrair com o erro atual, o resultado será multiplicado por kD
 ``` java
