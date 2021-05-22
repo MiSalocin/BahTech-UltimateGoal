@@ -294,7 +294,3 @@ the gamepad mapping is:
 | DPad down      | Lift down the arm halfway    |
 | Right joystick | Control the robot's turns    |
 | Left joystick  | Control the robot's movement |
-
-# References #
-
-Here are some of the materials that we used to base and test our program
