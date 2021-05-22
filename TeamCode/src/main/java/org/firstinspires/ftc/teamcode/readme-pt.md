@@ -256,12 +256,6 @@ Nós colocamos algumas fitas coloridas nos cabos do nosso robô para nos ajudar 
 |  1    | intake_motor  | Azul    |
 |  2    | shooter_motor | Branco  |
 
-### Servos ###
-| Porta | Nome          |
-|-------|---------------|
-|  0    | claw_servo    |
-|  1    | trig_servo    |
-
 ### I2C 0 ###
 | Porta | Nome          |
 |-------|---------------|
@@ -276,6 +270,12 @@ Nós colocamos algumas fitas coloridas nos cabos do nosso robô para nos ajudar 
 |  1   | FR             | Azul    |
 |  2   | BL             | Branco  |
 |  3   | BR             | Verde   |
+
+### Servos ###
+| Porta | Nome          |
+|-------|---------------|
+|  0    | claw_servo    |
+|  1    | trig_servo    |
 
 # Gamepad #
 Configuramos apenas um gamepad, tivemos alguns brainstorms e decidimos que apenas um piloto seria
