@@ -254,12 +254,6 @@ We had put some colorful tags in our robot's cables to help us identify it more 
 |  1   | intake_motor  | Blue   |
 |  2   | shooter_motor | White  |
 
-### Servos ###
-| Port | Name          |
-|------|---------------|
-|  0   | claw_servo    |
-|  1   | trig_servo    |
-
 ### I2C 0 ###
 | Port | Name          |
 |------|---------------|
@@ -274,6 +268,12 @@ We had put some colorful tags in our robot's cables to help us identify it more 
 |  1   | FR            | Blue    |
 |  2   | BL            | White   |
 |  3   | BR            | Green   |
+
+### Servos ###
+| Port | Name          |
+|------|---------------|
+|  0   | claw_servo    |
+|  1   | trig_servo    |
 
 # Gamepad #
 We configured only one gamepad, we had some brainstorms and decided that only one pilot would be
