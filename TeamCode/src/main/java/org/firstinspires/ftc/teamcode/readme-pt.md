@@ -296,7 +296,3 @@ o mapeamento do gamepad é:
 | DPad para baixo   | Abaixa a garra pela metade   |
 | Joystick direito  | Controla o giro do robô      |
 | Joystick esquerdo | Controla o movimento do robô |
-
-# References #
-
-Here are some of the materials that we used to base and test our program
