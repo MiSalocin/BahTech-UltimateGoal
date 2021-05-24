@@ -49,8 +49,8 @@ public class MATflowCore extends LinearOpMode {
 
     // defines the constant multipliers to the PID
     final double kp = 1;
-    final double ki = 0.4;
-    final double kd = 1.5;
+    final double ki = 0.5;
+    final double kd = 2;
     final double k = 50;
     double i = 0;
     double angle = 0;
@@ -71,7 +71,7 @@ public class MATflowCore extends LinearOpMode {
 
 
     @Override
-    public void runOpMode() {
+    public void runOpMode() throws InterruptedException {
 
         List<Recognition> recognitions;
         double index;
@@ -198,7 +198,7 @@ public class MATflowCore extends LinearOpMode {
         BR.setPower(0);
     }
 
-    private void goZoneA(){
+    private void goZoneA() throws InterruptedException {
 
         //Delivery 1st wobble goal
         goWhite();
@@ -212,14 +212,20 @@ public class MATflowCore extends LinearOpMode {
         sleep(500);
 
         //Go and align to the power shoot position
-        shooterMotor.setPower(0.68);
+        shooterMotor.setPower(0.2);
+        sleep(100);
+        shooterMotor.setPower(0.4);
+        sleep(100);
+        shooterMotor.setPower(0.6);
+        sleep(100);
+        shooterMotor.setPower(0.7);
         movePID(-45, 0.7);
-        movePIDSide(70, 0.7, true);
-        sleep(500);
-        movePIDSide(70, 0.7, true);
+        movePIDSide(65, 0.7, true);
+        sleep(1000);
+        movePIDSide(65, 0.7, true);
         sleep(500);
         shootPowerShoots(3);
-        turn(0.5,false,11,50);
+        turn(0.5,false,10.5,50);
         goWhite();
         sleep(5000);
 
@@ -353,17 +359,10 @@ public class MATflowCore extends LinearOpMode {
             d = (error - lastError) * kd;
             pid = (p + i + d) / k;
 
-            telemetry.addData("PID VALUE", pid);
-
             FL.setPower(speed - pid);
             FR.setPower(speed + pid);
             BL.setPower(speed - pid);
             BR.setPower(speed + pid);
-
-            telemetry.addData("PID", FL.getPower());
-            telemetry.addData("P", p);
-            telemetry.addData("I", i);
-            telemetry.addData("D", d);
 
             sleep(100);
             lastError = error;
@@ -389,12 +388,6 @@ public class MATflowCore extends LinearOpMode {
             FR.setPower(+ pid);
             BL.setPower(- pid);
             BR.setPower(+ pid);
-
-            telemetry.addData("PID", pid);
-            telemetry.addData("P",p);
-            telemetry.addData("I",i);
-            telemetry.addData("D",d);
-            telemetry.update();
 
             sleep(100);
 
@@ -545,65 +538,65 @@ public class MATflowCore extends LinearOpMode {
     }
 
     // Program used to precisely turn the robot
-    public void turn(double force, boolean right, double targetAngle, final double smoother) {
-        final int threshold = 10;
+    public void turn(double force, boolean isRight, double targetAngle, final double smoother) {
+        double angle;
+        final int threshold = 6;
         double currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-        if (right) {
+        if (isRight) {
+
             angle = -targetAngle + currentAngle;
+
             angle -= threshold;
-            if (angle < -180) {
-                angle += 360;
-            }
-            if (angle - currentAngle > 180) {
-                currentAngle += 360;
-            }
+
+            if (angle < -180) angle += 360;
+
+            if (angle - currentAngle > 180) currentAngle += 360;
+
             while (angle + threshold <= currentAngle) {
+
                 currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-                if (angle - currentAngle > 180)
-                    currentAngle += 360;
-                if (force < -((angle - currentAngle) / smoother)) {
-                    FR.setPower(-force);
-                    BR.setPower(-force);
-                    FL.setPower(force);
-                    BL.setPower(force);
+
+                if (angle - currentAngle > 180) currentAngle += 360;
+
+                if (force <= (angle - currentAngle) / smoother) {
+                    FR.setPower( force);
+                    BR.setPower( force);
+                    FL.setPower(-force);
+                    BL.setPower(-force);
                 } else {
-                    FR.setPower((angle - currentAngle) / smoother);
-                    BR.setPower((angle - currentAngle) / smoother);
+                    FR.setPower( (angle - currentAngle) / smoother);
+                    BR.setPower( (angle - currentAngle) / smoother);
                     FL.setPower(-(angle - currentAngle) / smoother);
                     BL.setPower(-(angle - currentAngle) / smoother);
                 }
-                telemetry.addData("angulo", angle);
             }
         } else {
+
             angle = targetAngle + currentAngle;
+
             angle += threshold;
-            if (angle > 180) {
-                angle -= 360;
-            }
-            if (currentAngle - angle > 180)
-                currentAngle -= 360;
+
+            if (angle > 180) angle -= 360;
+
+            if (currentAngle - angle > 180) currentAngle -= 360;
+
             while (angle - threshold >= currentAngle) {
                 currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
                 if (currentAngle - angle > 180)
                     currentAngle -= 360;
-                if (force < -((currentAngle - angle) / smoother)) {
-                    FR.setPower(force);
-                    BR.setPower(force);
-                    FL.setPower(-force);
-                    BL.setPower(-force);
+                if (force < ((currentAngle - angle) / smoother)) {
+                    FR.setPower(-force);
+                    BR.setPower(-force);
+                    FL.setPower(force);
+                    BL.setPower(force);
                 } else {
                     FR.setPower(-(currentAngle - angle) / smoother);
                     BR.setPower(-(currentAngle - angle) / smoother);
                     FL.setPower((currentAngle - angle) / smoother);
                     BL.setPower((currentAngle - angle) / smoother);
                 }
-                telemetry.addData("angulo", angle);
             }
         }
-        FR.setPower(0);
-        BR.setPower(0);
-        FL.setPower(0);
-        BL.setPower(0);
     }
 
     // Move the robot's arm
@@ -641,14 +634,14 @@ public class MATflowCore extends LinearOpMode {
         }
     }
 
-    private void shootPowerShoots(int quantity) {
+    private void shootPowerShoots(int quantity) throws InterruptedException {
         moveArmAuto(false);
         for (int n = 1; n <= quantity; n++) {
             trigServo.setPosition(0.2);
             sleep(1500);
             trigServo.setPosition(1);
             sleep(1500);
-            turn(0.5, true, 4, 40);
+            turn(0.5, true, 3.5, 30);
         }
         shooterMotor.setPower(0);
     }

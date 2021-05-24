@@ -119,7 +119,7 @@ public class MMTests extends LinearOpMode {
         // Test the arm motor
         try {
             telemetry.clear();
-            telemetry.addData("TESTING MOTOR", "ARM");
+            telemetry.addData("TESTING MOTOR", " ARM");
             telemetry.update();
             armMotor = hardwareMap.dcMotor.get("arm_motor");
             armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -137,7 +137,7 @@ public class MMTests extends LinearOpMode {
             telemetry.clear();
             telemetry.addData("arm motor", armMotor.getCurrentPosition());
             telemetry.update();
-            sleep(2000);
+            sleep(3000);
         } catch (Exception e) {
             telemetry.addData("ERROR", e);
             telemetry.update();
@@ -161,7 +161,7 @@ public class MMTests extends LinearOpMode {
             telemetry.clear();
             telemetry.addData("TESTING MOTOR", "INTAKE");
             telemetry.update();
-            sleep(2000);
+            sleep(5000);
             intake = hardwareMap.dcMotor.get("intake_motor");
             intake.setPower(1);
             sleep(1000);

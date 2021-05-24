@@ -9,11 +9,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
 
+import static java.lang.Thread.sleep;
+
 public class MMMovement {
     // Abstract values
     private final double[] force = new double[4];
     private final double[] lastForce = new double[4];
     private final ElapsedTime time = new ElapsedTime();
+
+    private double armForce = 0;
 
     // values used in the movement
     private double internal;
@@ -63,6 +67,9 @@ public class MMMovement {
         FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        BL.setDirection(DcMotor.Direction.REVERSE);
+        FL.setDirection(DcMotor.Direction.REVERSE);
     }
 
     // Init the IMU variables
@@ -78,58 +85,78 @@ public class MMMovement {
 
     /*METHODS USED IN THE AUTONOMOUS PERIOD*/
     // Turn the robot with given force, side, angle and precision
-    public void turn(double force, boolean isRight, double targetAngle, final double smoother) {
+    public void turn(double force, boolean isRight, double targetAngle, final double smoother)
+            throws InterruptedException {
+
+        double p;
+        double i = 0;
+        double d;
+        double pid;
+        double error;
+        double lastError = 0;
+
+        final double kp = 1;
+        final double ki = 0.35;
+        final double kd = 2;
+        final double k = 50;
+
         double angle;
-        final int threshold = 7;
+        final double threshold = 0.5;
         double currentAngle = getCurrentDegree();
+
         if (isRight) {
+
             angle = -targetAngle + currentAngle;
             angle -= threshold;
-            if (angle < -180) {
-                angle += 360;
-            }
-            if (angle - currentAngle > 180) {
-                currentAngle += 360;
-            }
-            while (angle + threshold <= currentAngle) {
+
+            if (angle < -180) angle += 360;
+            if (angle - currentAngle > 180) currentAngle += 360;
+
+            while (Math.abs(angle -  currentAngle) > threshold) {
                 currentAngle = getCurrentDegree();
-                if (angle - currentAngle > 180)
-                    currentAngle += 360;
-                if (force < smoother(angle, currentAngle, smoother)) {
-                    FR.setPower( force);
-                    BR.setPower( force);
-                    FL.setPower(-force);
-                    BL.setPower(-force);
-                } else {
-                    FR.setPower( smoother(angle, currentAngle, smoother));
-                    BR.setPower( smoother(angle, currentAngle, smoother));
-                    FL.setPower(-smoother(angle, currentAngle, smoother));
-                    BL.setPower(-smoother(angle, currentAngle, smoother));
-                }
+                if (angle - currentAngle > 180) currentAngle += 360;
+
+                error = angle - currentAngle;
+
+                p = error * kp;
+                i += error * ki;
+                d = (error - lastError) * kd;
+                pid = (p + i + d) / k;
+
+                FL.setPower( - force - pid);
+                FR.setPower( - force + pid);
+                BL.setPower(   force - pid);
+                BR.setPower(   force + pid);
+
+                sleep(100);
+                lastError = error;
             }
         } else {
+
             angle = targetAngle + currentAngle;
             angle += threshold;
-            if (angle > 180) {
-                angle -= 360;
-            }
-            if (currentAngle - angle > 180)
-                currentAngle -= 360;
-            while (angle - threshold >= currentAngle) {
+
+            if (angle > 180) angle -= 360;
+            if (currentAngle - angle > 180) currentAngle -= 360;
+
+            while (Math.abs(angle -  currentAngle) > threshold) {
                 currentAngle = getCurrentDegree();
-                if (currentAngle - angle > 180)
-                    currentAngle -= 360;
-                if (force < ((currentAngle - angle) / smoother)) {
-                    FR.setPower(-force);
-                    BR.setPower(-force);
-                    FL.setPower(force);
-                    BL.setPower(force);
-                } else {
-                    FR.setPower(-(currentAngle - angle) / smoother);
-                    BR.setPower(-(currentAngle - angle) / smoother);
-                    FL.setPower((currentAngle - angle) / smoother);
-                    BL.setPower((currentAngle - angle) / smoother);
-                }
+                if (currentAngle - angle > 180) currentAngle -= 360;
+
+                error = angle - currentAngle;
+
+                p = error * kp;
+                i += error * ki;
+                d = (error - lastError) * kd;
+                pid = (p + i + d) / k;
+
+                FL.setPower(   force - pid);
+                FR.setPower(   force + pid);
+                BL.setPower( - force - pid);
+                BR.setPower( - force + pid);
+
+                sleep(100);
+                lastError = error;
             }
         }
     }
@@ -220,31 +247,22 @@ public class MMMovement {
     public void intakeForce(double force) { intake.setPower(force); }
 
     // Shoot the rings to the high goals
-    public void shoot(boolean trigger)  {
+    public void shoot(boolean trigger) throws InterruptedException {
 
-        // Start the shooter motor
-        //shooterMotor.setPower(-0.7);
+        shooterMotor.setPower(0.8);
 
-        // Pull the trigger if a defined button is pressed
-        if (trigger && getArmEncoder()< -100) {
-            shooterServo.setPosition(0.2);
+        if (trigger && getArmEncoder() < -0) {
+            shooterServo.setPosition(0.8);
         } else {
-            shooterServo.setPosition(1);
+            shooterServo.setPosition(0.3);
         }
     }
 
     // Shoot the rings in the power shot
-    public void powerShot(boolean trigger)  {
-        shooterMotor.setPower(-1);
+    public void powerShot(boolean trigger) throws InterruptedException {
 
-        if (trigger) {
-            armMotor.setTargetPosition(-300);
-            armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            armMotor.setPower(0.5);
-        }
-
-        if (trigger && getArmEncoder()< -0) {
-            shooterServo.setPosition(0);
+        if (trigger && getArmEncoder() < -0) {
+            shooterServo.setPosition(0.8);
         } else {
             shooterServo.setPosition(0.3);
         }

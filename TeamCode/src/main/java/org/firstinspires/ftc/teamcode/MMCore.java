@@ -35,7 +35,7 @@ public class MMCore extends LinearOpMode {
                 sleep(250);
             }
             else if (gamepad1.dpad_up && move.getIntakeForce() != 0.8){
-                move.intakeForce(1);
+                move.intakeForce(0.8);
                 sleep(250);
             }
 
