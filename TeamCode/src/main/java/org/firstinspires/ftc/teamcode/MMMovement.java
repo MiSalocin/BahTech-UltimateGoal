@@ -5,6 +5,7 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
@@ -12,24 +13,35 @@ import org.firstinspires.ftc.robotcore.external.navigation.*;
 import static java.lang.Thread.sleep;
 
 public class MMMovement {
+
+    // SENSORS
+    TouchSensor touchSensor;
+
+    // PID Variables
+    final double kp = 1;
+    final double ki = 1;
+    final double kd = 2;
+    final double k = 50;
+
     // Abstract values
     private final double[] force = new double[4];
     private final double[] lastForce = new double[4];
-    private final ElapsedTime time = new ElapsedTime();
-
-    private double armForce = 0;
+    private int up = 0;
+    private int down = -1000;
 
     // values used in the movement
-    private double internal;
-    private double external;
+    private double internal = 1;
+    private double external = 1;
 
-    // MOTORS
+    // MOVEMENT MOTORS
     private DcMotor FR;
     private DcMotor FL;
     private DcMotor BR;
     private DcMotor BL;
+
+    // SECONDARY MOTORS
     private DcMotor shooterMotor;
-    private DcMotor intake;
+    private DcMotor intakeMotor;
     private DcMotor armMotor;
 
     // SERVOS
@@ -50,26 +62,23 @@ public class MMMovement {
         BL = hardwareMap.dcMotor.get("BL");
         BR = hardwareMap.dcMotor.get("BR");
 
+        // Motors used to perform actions
         armMotor = hardwareMap.dcMotor.get("arm_motor");
         shooterMotor = hardwareMap.dcMotor.get("shooter_motor");
-        intake = hardwareMap.dcMotor.get("intake_motor");
+        intakeMotor = hardwareMap.dcMotor.get("intake_motor");
+
+        // Servos used to perform actions
         shooterServo = hardwareMap.servo.get("trig_servo");
         clawServo = hardwareMap.servo.get("claw_servo");
 
         armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-        armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         BL.setDirection(DcMotor.Direction.REVERSE);
         FL.setDirection(DcMotor.Direction.REVERSE);
 
-        FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        BL.setDirection(DcMotor.Direction.REVERSE);
-        FL.setDirection(DcMotor.Direction.REVERSE);
+        touchSensor = hardwareMap.get(TouchSensor.class, "touch_sensor");
     }
 
     // Init the IMU variables
@@ -85,91 +94,98 @@ public class MMMovement {
 
     /*METHODS USED IN THE AUTONOMOUS PERIOD*/
     // Turn the robot with given force, side, angle and precision
-    public void turn(double force, boolean isRight, double targetAngle, final double smoother)
-            throws InterruptedException {
+    public void turn(double pidK, boolean isRight, double targetAngle) throws InterruptedException {
 
-        double p;
+        final double threshold = 0.5;
+
+        double currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
+        double angle;
+
+        double p = 0;
         double i = 0;
-        double d;
-        double pid;
+        double d = 0;
+        double pid = 0 ;
         double error;
         double lastError = 0;
 
-        final double kp = 1;
-        final double ki = 0.35;
-        final double kd = 2;
-        final double k = 50;
-
-        double angle;
-        final double threshold = 0.5;
-        double currentAngle = getCurrentDegree();
 
         if (isRight) {
 
             angle = -targetAngle + currentAngle;
-            angle -= threshold;
-
             if (angle < -180) angle += 360;
             if (angle - currentAngle > 180) currentAngle += 360;
 
-            while (Math.abs(angle -  currentAngle) > threshold) {
-                currentAngle = getCurrentDegree();
+            while (Math.abs(angle-currentAngle) > threshold) {
+
+                currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
                 if (angle - currentAngle > 180) currentAngle += 360;
 
                 error = angle - currentAngle;
-
                 p = error * kp;
                 i += error * ki;
                 d = (error - lastError) * kd;
-                pid = (p + i + d) / k;
+                pid = (p+i+d) / -k;
 
-                FL.setPower( - force - pid);
-                FR.setPower( - force + pid);
-                BL.setPower(   force - pid);
-                BR.setPower(   force + pid);
+                FL.setPower(+ pid * pidK);
+                FR.setPower(- pid * pidK);
+                BL.setPower(+ pid * pidK);
+                BR.setPower(- pid * pidK);
 
                 sleep(100);
-                lastError = error;
+
+                lastError=error;
             }
+
         } else {
 
             angle = targetAngle + currentAngle;
-            angle += threshold;
-
             if (angle > 180) angle -= 360;
             if (currentAngle - angle > 180) currentAngle -= 360;
 
-            while (Math.abs(angle -  currentAngle) > threshold) {
-                currentAngle = getCurrentDegree();
+            while (Math.abs(angle-currentAngle) > threshold) {
+
+                currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
                 if (currentAngle - angle > 180) currentAngle -= 360;
 
                 error = angle - currentAngle;
-
                 p = error * kp;
                 i += error * ki;
                 d = (error - lastError) * kd;
-                pid = (p + i + d) / k;
+                pid = -(p+i+d) / k;
 
-                FL.setPower(   force - pid);
-                FR.setPower(   force + pid);
-                BL.setPower( - force - pid);
-                BR.setPower( - force + pid);
+                FL.setPower(+ pid * pidK);
+                FR.setPower(- pid * pidK);
+                BL.setPower(+ pid * pidK);
+                BR.setPower(- pid * pidK);
 
                 sleep(100);
-                lastError = error;
+
+                lastError=error;
             }
+        }
+
+        FL.setPower(0);
+        FR.setPower(0);
+        BL.setPower(0);
+        BR.setPower(0);
+    }
+
+
+    public void clawAuto(boolean isOpen) {
+        if(isOpen) {
+            clawServo.setPosition(0);
+        }
+        if(!isOpen) {
+            clawServo.setPosition(1);
         }
     }
 
     /*METHODS USED IN THE TELE-OPERATED PERIOD*/
-    // Move the robot
-    public void move(double leftY, double leftX, double rightX, boolean slower, boolean faster) {
+    // Move the robot with an absolute front
+    public void moveByArena(double leftY, double leftX, double rightX, boolean slower, boolean faster) {
 
         // Create a variable using the IMU
         double angle = getCurrentDegree();
-
-        // Defines the smoother for the movement
-        final double smoother = 0.1;
 
         // Will get the IMU value and change the "internal" and "external" variables
         if (0 < angle && angle <= 90) {
@@ -189,6 +205,15 @@ public class MMMovement {
             external = -1;
         }
 
+        moveByRobot(leftY, leftX, rightX, slower, faster);
+    }
+
+    // Move the robot using it's front
+    public void moveByRobot(double leftY, double leftX, double rightX, boolean slower, boolean faster) {
+
+        // Defines the smoother for the movement
+        final double smoother = 0.1;
+
         // Add to the vector the forces of the gamepad and the angle variables
         force[0] = leftY * internal + leftX * external + rightX;
         force[1] = leftY * external - leftX * internal + rightX;
@@ -197,21 +222,11 @@ public class MMMovement {
 
         // See if the difference of the last force and the current one is bigger than the
         // smoother value, if it is, it will change gradually to not damage the motors
-        if (Math.abs(lastForce[0] - force[0]) > smoother) {
-            if (lastForce[0] > force[0]) force[0] = lastForce[0] - smoother;
-            else                         force[0] = lastForce[0] + smoother;
-        }
-        if (Math.abs(lastForce[1] - force[1]) > smoother) {
-            if (lastForce[1] > force[1]) force[1] = lastForce[1] - smoother;
-            else                         force[1] = lastForce[1] + smoother;
-        }
-        if (Math.abs(lastForce[2] - force[2]) > smoother) {
-            if (lastForce[2] > force[2]) force[2] = lastForce[2] - smoother;
-            else                         force[2] = lastForce[2] + smoother;
-        }
-        if (Math.abs(lastForce[3] - force[3]) > smoother) {
-            if (lastForce[3] > force[3]) force[3] = lastForce[3] - smoother;
-            else                         force[3] = lastForce[3] + smoother;
+        for (int s = 0; s <= 3; s++) {
+            if (Math.abs(lastForce[s] - force[s]) > smoother) {
+                if      (lastForce[s] > force[s]) force[s] = lastForce[s] - smoother;
+                else                              force[s] = lastForce[s] + smoother;
+            }
         }
 
         // Save the used force in variables to get the difference
@@ -244,37 +259,44 @@ public class MMMovement {
     }
 
     // Define the intake force
-    public void intakeForce(double force) { intake.setPower(force); }
+    public void intakeForce(double force) { intakeMotor.setPower(force); }
 
-    // Shoot the rings to the high goals
-    public void shoot(boolean trigger) throws InterruptedException {
+    // Define the shooter force
+    public void shotForce(boolean stronger, boolean weaker) {
 
-        shooterMotor.setPower(0.8);
-
-        if (trigger && getArmEncoder() < -0) {
-            shooterServo.setPosition(0.8);
-        } else {
-            shooterServo.setPosition(0.3);
+        if (stronger) {
+            shooterMotor.setPower(0.75);
+        } else if (weaker){
+            shooterMotor.setPower(0.65);
         }
     }
 
-    // Shoot the rings in the power shot
-    public void powerShot(boolean trigger) throws InterruptedException {
+    // Activate or deactivate the intake
+    public void controlIntake(boolean button) throws InterruptedException {
 
-        if (trigger && getArmEncoder() < -0) {
+        if (button && getIntakeForce() != 0){
+            intakeMotor.setPower(0);
+            sleep(250);
+        }
+        else if (button && getIntakeForce() != 0.8){
+            intakeMotor.setPower(0.8);
+            sleep(250);
+        }
+    }
+
+    // Shoot the rings to the high goals
+    public void shoot(boolean trigger) {
+
+        if (trigger && armMotor.getCurrentPosition() < down + 100) {
             shooterServo.setPosition(0.8);
         } else {
-            shooterServo.setPosition(0.3);
+            shooterServo.setPosition(0);
         }
-
     }
 
     // Move the robot's claw
-    public void claw(boolean halfDown, boolean totalUp, boolean totalDown, boolean open, boolean close) {
+    public void claw(boolean totalUp, boolean totalDown, boolean open, boolean close) {
 
-        final int up = 700;
-        final int down = -520;
-        final int half = 300;
         final double force = 0.7;
 
         if (open) {
@@ -293,22 +315,20 @@ public class MMMovement {
             armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             armMotor.setPower(force);
         }
-        else if (halfDown) {
-            armMotor.setTargetPosition(half);
-            armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            armMotor.setPower(force);
-        }
-
         if (!armMotor.isBusy()){
             armMotor.setPower(0);
         }
     }
+    public void calibrateArm(){
 
-    // Use some values to make an variable value that should decrease the robot velocity
-    private double smoother(double firstValue, double secondValue, double strength){
-        double smoother;
-        smoother = (firstValue - secondValue) / strength;
-        return smoother;
+        final int difference = -900;
+
+        while (!touchSensor.isPressed()) {
+            armMotor.setPower(0.3);
+        }
+
+        up = armMotor.getCurrentPosition();
+        down = up + difference;
     }
 
     /*Getters and setters*/
@@ -316,7 +336,7 @@ public class MMMovement {
     public double getFrForce(){ return FR.getPower(); }
     public double getBlForce(){ return BL.getPower(); }
     public double getBrForce(){ return BR.getPower(); }
-    public double getIntakeForce(){ return intake.getPower(); }
+    public double getIntakeForce(){ return intakeMotor.getPower(); }
     private double getArmEncoder() { return armMotor.getCurrentPosition(); }
     private double getCurrentDegree() {return imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;}
 }

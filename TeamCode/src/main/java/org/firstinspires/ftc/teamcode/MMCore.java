@@ -23,6 +23,7 @@ public class MMCore extends LinearOpMode {
         move.defHardware(hardwareMap);
         move.initIMU(hardwareMap);
         move.intakeForce(0);
+        move.calibrateArm();
 
         // Run once you press PLAY
         waitForStart();
@@ -30,28 +31,34 @@ public class MMCore extends LinearOpMode {
         // Run repeatedly after you press play
         while(opModeIsActive()){
 
-            if (gamepad1.dpad_up && move.getIntakeForce() != 0){
-                move.intakeForce(0);
-                sleep(250);
-            }
-            else if (gamepad1.dpad_up && move.getIntakeForce() != 0.8){
-                move.intakeForce(0.8);
-                sleep(250);
-            }
-
             // Create variables for the control
             double leftX = -gamepad1.left_stick_x;
             double leftY = -gamepad1.left_stick_y;
             double rightX = -gamepad1.right_stick_x;
+
+            boolean buttonY = gamepad1.y;
+            boolean buttonX = gamepad1.x;
+            boolean buttonA = gamepad1.a;
+            boolean buttonB = gamepad1.b;
+            boolean upButton = gamepad1.dpad_up;
+
+            double lt = gamepad1.left_trigger;
+            double rt = gamepad1.right_trigger;
             boolean lb = gamepad1.left_bumper;
             boolean rb = gamepad1.right_bumper;
 
-            move.shoot(gamepad1.right_trigger != 0.0);
-            move.powerShot(gamepad1.left_trigger  != 0.0);
+            boolean rStickButton = gamepad1.right_stick_button;
+            boolean lStickButton = gamepad1.left_stick_button;
 
-            move.move(leftY, leftX, rightX, lb, rb);
-            move.claw(gamepad1.dpad_down, gamepad1.y, gamepad1.a, gamepad1.b, gamepad1.x);
+            // MMMovement actions
+            move.shoot(rt <= 0.3);
+            move.shoot(lt <= 0.3);
+            move.controlIntake(upButton);
+            move.shotForce(lStickButton, rStickButton);
+            move.moveByRobot(leftY, leftX, rightX, lb, rb);
+            move.claw(buttonY, buttonA, buttonB, buttonX);
 
+            // Add info in the Driver Station screen
             telemetry.addData("Front Left Motor",  String.format("%.2f", move.getFlForce()));
             telemetry.addData("Front Right Motor", String.format("%.2f", move.getFrForce()));
             telemetry.addData("Back Left Motor",   String.format("%.2f", move.getBlForce()));

@@ -6,6 +6,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorRangeSensor;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -13,6 +14,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -42,6 +44,7 @@ public class MMTests extends LinearOpMode {
 
         // SENSORS
         ColorRangeSensor colorSensor;
+        TouchSensor touchSensor;
         BNO055IMU imu;
         final BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
@@ -201,34 +204,40 @@ public class MMTests extends LinearOpMode {
             telemetry.update();
             sleep(5000);
         }
+        telemetry.addData("Press play to", " test the sensors");
 
-        // Test the Light, Distance and IMU sensors
-        try {
-            telemetry.clear();telemetry.addData("SENSORS", "COLOR, DISTANCE, IMU"); telemetry.update();
-            sleep(2000);
+        waitForStart();
+        while (opModeIsActive()){
+
+            // Test the Light, Distance and IMU sensors
+            try {
+                telemetry.clear();telemetry.addData("SENSORS", "COLOR, DISTANCE, IMU"); telemetry.update();
+                sleep(2000);
 
 
-            // Initialize the IMU
-            imu = hardwareMap.get(BNO055IMU.class, "imu");
-            parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-            parameters.calibrationDataFile = "BNO055IMUCalibration.json";
-            parameters.loggingEnabled = true;
-            parameters.loggingTag = "IMU";
-            parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-            imu.initialize(parameters);
-            colorSensor = hardwareMap.get(ColorRangeSensor.class, "sensor_color");
+                // Initialize the IMU
+                imu = hardwareMap.get(BNO055IMU.class, "imu");
+                parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+                parameters.calibrationDataFile = "BNO055IMUCalibration.json";
+                parameters.loggingEnabled = true;
+                parameters.loggingTag = "IMU";
+                parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+                imu.initialize(parameters);
+                colorSensor = hardwareMap.get(ColorRangeSensor.class, "sensor_color");
+                touchSensor = hardwareMap.get(TouchSensor.class, "touch_sensor");
 
-            while (time.milliseconds()<10000){
                 telemetry.clear();
-                telemetry.addData("DISTANCE ", colorSensor.getDistance(DistanceUnit.CM));
-                telemetry.addData("ALPHA    ", colorSensor.alpha());
-                telemetry.addData("IMU ANGLE", imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle);
+                telemetry.addData("DISTANCE    ", colorSensor.getDistance(DistanceUnit.CM));
+                telemetry.addData("ALPHA       ", colorSensor.alpha());
+                telemetry.addData("IMU ANGLE   ", imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle);
+                telemetry.addData("TOUCH SENSOR", touchSensor.getValue());
                 telemetry.update();
+
+            } catch (Exception e) {
+                telemetry.addData("ERROR", e);
+                telemetry.update();
+                sleep(5000);
             }
-        } catch (Exception e) {
-            telemetry.addData("ERROR", e);
-            telemetry.update();
-            sleep(5000);
         }
     }
 }
