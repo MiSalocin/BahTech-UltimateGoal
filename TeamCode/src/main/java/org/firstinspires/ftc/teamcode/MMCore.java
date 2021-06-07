@@ -6,11 +6,9 @@ import android.annotation.SuppressLint;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name = "My Mechanum: Core", group = "BahTech")
 public class MMCore extends LinearOpMode {
-    final ElapsedTime time = new ElapsedTime();
 
     // Map the hardware to autonomous and TeleOp
     final MMMovement move = new MMMovement();
@@ -23,7 +21,7 @@ public class MMCore extends LinearOpMode {
         move.defHardware(hardwareMap);
         move.initIMU(hardwareMap);
         move.intakeForce(0);
-        move.calibrateArm();
+//        move.calibrateArm();
 
         // Run once you press PLAY
         waitForStart();
@@ -36,10 +34,10 @@ public class MMCore extends LinearOpMode {
             double leftY = -gamepad1.left_stick_y;
             double rightX = -gamepad1.right_stick_x;
 
-            boolean buttonY = gamepad1.y;
-            boolean buttonX = gamepad1.x;
-            boolean buttonA = gamepad1.a;
-            boolean buttonB = gamepad1.b;
+//            boolean buttonY = gamepad1.y;
+//            boolean buttonX = gamepad1.x;
+//            boolean buttonA = gamepad1.a;
+//            boolean buttonB = gamepad1.b;
             boolean upButton = gamepad1.dpad_up;
 
             double lt = gamepad1.left_trigger;
@@ -51,12 +49,11 @@ public class MMCore extends LinearOpMode {
             boolean lStickButton = gamepad1.left_stick_button;
 
             // MMMovement actions
-            move.shoot(rt <= 0.3);
-            move.shoot(lt <= 0.3);
+            move.shoot(rt >= 0.3, lt >= 0.3);
             move.controlIntake(upButton);
             move.shotForce(lStickButton, rStickButton);
             move.moveByRobot(leftY, leftX, rightX, lb, rb);
-            move.claw(buttonY, buttonA, buttonB, buttonX);
+//            move.claw(buttonY, buttonA, buttonB, buttonX);
 
             // Add info in the Driver Station screen
             telemetry.addData("Front Left Motor",  String.format("%.2f", move.getFlForce()));

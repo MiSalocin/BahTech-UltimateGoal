@@ -248,7 +248,7 @@ Mapear o robô nos ajuda com o gerenciamento de cabos, elaé usada para evitar m
  de cabos e as complicações que isso causa.
 
 Nós colocamos algumas fitas coloridas nos cabos do nosso robô para nos ajudar a identificá-los.
-## HUB 1 / Azul ##
+## HUB 1 / Etiqueta Azul ##
 ### Motores ###
 | Porta | Nome          | Cor     |
 |-------|---------------|---------|
@@ -262,7 +262,7 @@ Nós colocamos algumas fitas coloridas nos cabos do nosso robô para nos ajudar 
 |  0    | imu           |
 |  1    | sensor_color  | 
 
-## HUB 2 / Pink tag ##
+## HUB 2 / Etiqueta rosa ##
 ### Motors ###
 | Porta | Nome          | Cor     |
 |------|----------------|---------|

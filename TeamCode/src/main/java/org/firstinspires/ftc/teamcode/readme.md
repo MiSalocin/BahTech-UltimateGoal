@@ -246,7 +246,7 @@ Robot Mapping help us with cable management, it is used to avoid unnecessary cha
  and the complications that come with it.
 
 We had put some colorful tags in our robot's cables to help us identify it more easily.
-## HUB 1 / Blue ##
+## HUB 1 / Blue tag ##
 ### Motors ###
 | Port | Name          | Color  |
 |------|---------------|--------|

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode;//package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.TouchSensor;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.*;
 
@@ -16,12 +15,6 @@ public class MMMovement {
 
     // SENSORS
     TouchSensor touchSensor;
-
-    // PID Variables
-    final double kp = 1;
-    final double ki = 1;
-    final double kd = 2;
-    final double k = 50;
 
     // Abstract values
     private final double[] force = new double[4];
@@ -90,94 +83,6 @@ public class MMMovement {
         parameters.loggingTag = "IMU";
         parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
         imu.initialize(parameters);
-    }
-
-    /*METHODS USED IN THE AUTONOMOUS PERIOD*/
-    // Turn the robot with given force, side, angle and precision
-    public void turn(double pidK, boolean isRight, double targetAngle) throws InterruptedException {
-
-        final double threshold = 0.5;
-
-        double currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-        double angle;
-
-        double p = 0;
-        double i = 0;
-        double d = 0;
-        double pid = 0 ;
-        double error;
-        double lastError = 0;
-
-
-        if (isRight) {
-
-            angle = -targetAngle + currentAngle;
-            if (angle < -180) angle += 360;
-            if (angle - currentAngle > 180) currentAngle += 360;
-
-            while (Math.abs(angle-currentAngle) > threshold) {
-
-                currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-                if (angle - currentAngle > 180) currentAngle += 360;
-
-                error = angle - currentAngle;
-                p = error * kp;
-                i += error * ki;
-                d = (error - lastError) * kd;
-                pid = (p+i+d) / -k;
-
-                FL.setPower(+ pid * pidK);
-                FR.setPower(- pid * pidK);
-                BL.setPower(+ pid * pidK);
-                BR.setPower(- pid * pidK);
-
-                sleep(100);
-
-                lastError=error;
-            }
-
-        } else {
-
-            angle = targetAngle + currentAngle;
-            if (angle > 180) angle -= 360;
-            if (currentAngle - angle > 180) currentAngle -= 360;
-
-            while (Math.abs(angle-currentAngle) > threshold) {
-
-                currentAngle = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-                if (currentAngle - angle > 180) currentAngle -= 360;
-
-                error = angle - currentAngle;
-                p = error * kp;
-                i += error * ki;
-                d = (error - lastError) * kd;
-                pid = -(p+i+d) / k;
-
-                FL.setPower(+ pid * pidK);
-                FR.setPower(- pid * pidK);
-                BL.setPower(+ pid * pidK);
-                BR.setPower(- pid * pidK);
-
-                sleep(100);
-
-                lastError=error;
-            }
-        }
-
-        FL.setPower(0);
-        FR.setPower(0);
-        BL.setPower(0);
-        BR.setPower(0);
-    }
-
-
-    public void clawAuto(boolean isOpen) {
-        if(isOpen) {
-            clawServo.setPosition(0);
-        }
-        if(!isOpen) {
-            clawServo.setPosition(1);
-        }
     }
 
     /*METHODS USED IN THE TELE-OPERATED PERIOD*/
@@ -265,9 +170,9 @@ public class MMMovement {
     public void shotForce(boolean stronger, boolean weaker) {
 
         if (stronger) {
-            shooterMotor.setPower(0.75);
+            shooterMotor.setPower(0.725);
         } else if (weaker){
-            shooterMotor.setPower(0.65);
+            shooterMotor.setPower(0.637);
         }
     }
 
@@ -285,12 +190,12 @@ public class MMMovement {
     }
 
     // Shoot the rings to the high goals
-    public void shoot(boolean trigger) {
+    public void shoot(boolean rt, boolean lt) {
 
-        if (trigger && armMotor.getCurrentPosition() < down + 100) {
+        if ((rt || lt) /*&& armMotor.getCurrentPosition() < down + 100*/) {
             shooterServo.setPosition(0.8);
         } else {
-            shooterServo.setPosition(0);
+            shooterServo.setPosition(0  );
         }
     }
 
@@ -327,6 +232,7 @@ public class MMMovement {
             armMotor.setPower(0.3);
         }
 
+        armMotor.setPower(0);
         up = armMotor.getCurrentPosition();
         down = up + difference;
     }
