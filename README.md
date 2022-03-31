@@ -9,5 +9,5 @@
 
 ## Want to acces our complete code explanation?
 
-<a href="" target="_blank"> ▶️ Click here! </a>  
+<a href="https://github.com/MiSalocin/BahTech-UltimateGoal/tree/main/TeamCode/src/main/java/org/firstinspires/ftc/teamcode" target="_blank"> ▶️ Click here! </a>  
  or dive into our Team's code folder
