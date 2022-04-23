@@ -2,12 +2,9 @@
 
 ## This code was fully developed by:
 
-<ul>
-	<li>Nicolas de Oliveira Correa</li>
-	<li>Rafael Ramos dos Santos</li>
-</ul>
-
+* Nicolas de Oliveira Correa</li>
+* Rafael Ramos dos Santos
+	
 ## Want to acces our complete code explanation?
 
-<a href="https://github.com/MiSalocin/BahTech-UltimateGoal/tree/main/TeamCode/src/main/java/org/firstinspires/ftc/teamcode" target="_blank"> ▶️ Click here! </a>  
- or dive into our Team's code folder
+▶️ Click to dive into our Team's code folder click [here!](https://github.com/MiSalocin/BahTech-UltimateGoal/tree/main/TeamCode/src/main/java/org/firstinspires/ftc/teamcode)
